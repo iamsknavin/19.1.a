@@ -1,16 +1,18 @@
 """
-MyNeta Spider for NETAwatch Phase 1.
+MyNeta Spider for NETAwatch.
 
-Scrapes myneta.info for all current Lok Sabha (2024) and Rajya Sabha MPs.
+Scrapes myneta.info for Lok Sabha, Rajya Sabha, and State Assembly (Vidhan Sabha) data.
 Extracts: name, party, constituency, state, house, assets, liabilities,
           criminal cases, profile photo.
 
 Usage:
-  scrapy crawl myneta                              # both houses, winners only (default)
-  scrapy crawl myneta -a house=lok_sabha           # Lok Sabha only, winners only
+  scrapy crawl myneta                              # both LS+RS, winners only (default)
+  scrapy crawl myneta -a house=lok_sabha           # Lok Sabha only
   scrapy crawl myneta -a house=rajya_sabha         # Rajya Sabha only
+  scrapy crawl myneta -a house=vidhan_sabha        # ALL state assemblies (MLAs)
+  scrapy crawl myneta -a house=vidhan_sabha -a state=Maharashtra  # single state
   scrapy crawl myneta -a all_candidates=true       # scrape ALL candidates (won + lost)
-  scrapy crawl myneta -a house=lok_sabha -a dry_run=true  # dry run (no DB writes)
+  scrapy crawl myneta -a dry_run=true              # dry run (no DB writes)
   scrapy crawl myneta -a limit=10                  # stop after 10 politicians (testing)
 
 Rate limiting: 1.5s delay between requests (see settings.py).
@@ -44,6 +46,33 @@ ELECTION_URLS = {
 DECLARATION_YEARS = {
     "lok_sabha": 2024,
     "rajya_sabha": 2024,
+}
+
+# State assembly elections — recent winners pages
+# URL pattern: myneta.info/{State}{Year}/index.php?action=show_winners&sort=default
+VIDHAN_SABHA_ELECTIONS = {
+    "Maharashtra": 2024,
+    "Jharkhand": 2024,
+    "Haryana": 2024,
+    "Jammu_And_Kashmir": 2024,
+    "Rajasthan": 2023,
+    "Madhya_Pradesh": 2023,
+    "Chhattisgarh": 2023,
+    "Telangana": 2023,
+    "Mizoram": 2023,
+    "Gujarat": 2022,
+    "Himachal_Pradesh": 2022,
+    "Punjab": 2022,
+    "Uttarakhand": 2022,
+    "Goa": 2022,
+    "Uttar_Pradesh": 2022,
+    "Manipur": 2022,
+    "West_Bengal": 2021,
+    "Tamil_Nadu": 2021,
+    "Kerala": 2021,
+    "Assam": 2021,
+    "Bihar": 2025,
+    "Delhi": 2025,
 }
 
 
@@ -85,6 +114,7 @@ class MyNetaSpider(scrapy.Spider):
         dry_run: str = "false",
         limit: str = "0",
         all_candidates: str = "false",
+        state: str = "",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -92,6 +122,7 @@ class MyNetaSpider(scrapy.Spider):
         self.dry_run = dry_run.lower() == "true"
         self.limit = int(limit)
         self.winners_only = all_candidates.lower() != "true"
+        self.target_state = state  # for vidhan_sabha: specific state filter
         self._count = 0
         self._seen_slugs: set[str] = set()
 
@@ -117,6 +148,19 @@ class MyNetaSpider(scrapy.Spider):
                 meta={"house": "rajya_sabha"},
                 dont_filter=True,
             )
+
+        if self.target_house in ("vidhan_sabha", "all"):
+            for state_key, year in VIDHAN_SABHA_ELECTIONS.items():
+                if self.target_state and state_key.lower().replace("_", "") != self.target_state.lower().replace("_", ""):
+                    continue
+                # Use base index page (not show_winners which uses JS obfuscation)
+                url = f"https://www.myneta.info/{state_key}{year}/"
+                yield scrapy.Request(
+                    url,
+                    callback=self.parse_index,
+                    meta={"house": "vidhan_sabha", "vs_state": state_key.replace("_", " "), "vs_year": year},
+                    dont_filter=True,
+                )
 
     def parse_index(self, response: Response) -> Generator:
         """
@@ -243,7 +287,7 @@ class MyNetaSpider(scrapy.Spider):
             "profile_image_url": profile_image_url,
             "assets": assets,
             "criminal_cases": criminal_cases,
-            "declaration_year": DECLARATION_YEARS.get(house, 2024),
+            "declaration_year": response.meta.get("vs_year") or DECLARATION_YEARS.get(house, 2024),
             "source_url": source_url,
             **personal,
         }

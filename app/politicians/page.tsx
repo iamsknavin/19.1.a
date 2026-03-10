@@ -152,6 +152,7 @@ export default async function PoliticiansPage({
                   { value: "", label: "All" },
                   { value: "lok_sabha", label: "Lok Sabha" },
                   { value: "rajya_sabha", label: "Rajya Sabha" },
+                  { value: "vidhan_sabha", label: "Vidhan Sabha" },
                 ].map((opt) => (
                   <Link
                     key={opt.value}

@@ -82,6 +82,7 @@ export default async function PoliticianProfilePage({
   const latestAssets = [...assets]
     .sort((a, b) => b.declaration_year - a.declaration_year)[0] ?? null;
   const heinousCases = cases.filter((c) => c.is_heinous);
+  const signals = p.corruption_signals ?? [];
   const houseLabel = HOUSE_LABELS[p.house ?? ""] ?? p.house;
 
   return (
@@ -205,6 +206,27 @@ export default async function PoliticianProfilePage({
       </div>
 
       {/* Tab content (server-rendered, hash-based switching via CSS) */}
+      {/* Risk signals banner */}
+      {signals.length > 0 && (
+        <div className="bg-warning/5 border border-warning/30 rounded-sm p-4 mb-6">
+          <p className="font-mono text-xs text-warning font-semibold mb-2 uppercase tracking-widest">
+            ⚠ {signals.length} Risk Signal{signals.length > 1 ? "s" : ""} Detected
+          </p>
+          <div className="space-y-1">
+            {signals.map((s) => (
+              <div key={s.id} className="flex items-center gap-2">
+                <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                  s.signal_severity === "critical" ? "bg-danger" :
+                  s.signal_severity === "high" ? "bg-warning" :
+                  s.signal_severity === "medium" ? "bg-accent" : "bg-text-muted"
+                }`} />
+                <span className="text-xs text-text-secondary">{s.signal_description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <TabLayout
         assets={assets}
         cases={cases}
@@ -559,9 +581,9 @@ function TabLayout({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                   {[
                     ["Attendance", formatPercent(rec.attendance_percent)],
-                    ["Days Present", `${rec.days_present ?? "?"}/${rec.total_days ?? "?"}`],
                     ["Questions", rec.questions_asked?.toLocaleString("en-IN") ?? "—"],
                     ["Debates", rec.debates_participated?.toLocaleString("en-IN") ?? "—"],
+                    ["Bills", rec.bills_introduced?.toLocaleString("en-IN") ?? "—"],
                   ].map(([label, value]) => (
                     <div key={label}>
                       <p className="font-mono text-2xs text-text-muted uppercase tracking-widest">
@@ -578,11 +600,8 @@ function TabLayout({
           </div>
         ) : (
           <div className="border border-dashed border-border p-8 text-center rounded-sm">
-            <p className="font-mono text-text-secondary text-sm mb-1">
-              Parliamentary data not yet available
-            </p>
-            <p className="text-2xs text-text-muted font-mono">
-              PRS India scraper coming in Phase 2
+            <p className="font-mono text-text-secondary text-sm">
+              Parliamentary performance data not yet available for this MP
             </p>
           </div>
         )}

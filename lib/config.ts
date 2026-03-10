@@ -1,10 +1,10 @@
 export const PHASE_CONFIG = {
-  current: 1,
+  current: 2,
   features: {
     company_interests: false, // Phase 2
     tender_tracking: false, // Phase 2
-    corruption_signals: false, // Phase 2
-    mla_data: false, // Phase 2
+    corruption_signals: true, // Phase 2 — LIVE
+    mla_data: true, // Phase 2 — LIVE
     ecourts_live: false, // Phase 3
     controversy_tracker: false, // Phase 3
     mplad_tracking: false, // Phase 3
