@@ -32,7 +32,8 @@ async function getPolitician(slug: string): Promise<PoliticianProfile | null> {
       attendance_records (*),
       company_interests (*),
       corruption_signals (*),
-      controversies (*)
+      controversies (*),
+      fund_usage (*)
     `
     )
     .eq("slug", slug)
@@ -83,6 +84,8 @@ export default async function PoliticianProfilePage({
     .sort((a, b) => b.declaration_year - a.declaration_year)[0] ?? null;
   const heinousCases = cases.filter((c) => c.is_heinous);
   const signals = p.corruption_signals ?? [];
+  const controversies = p.controversies ?? [];
+  const fundUsage = p.fund_usage ?? [];
   const houseLabel = HOUSE_LABELS[p.house ?? ""] ?? p.house;
 
   return (
@@ -234,6 +237,8 @@ export default async function PoliticianProfilePage({
         attendance={attendance}
         latestAssets={latestAssets}
         heinousCases={heinousCases}
+        controversies={controversies}
+        fundUsage={fundUsage}
       />
     </div>
   );
@@ -247,6 +252,8 @@ function TabLayout({
   attendance,
   latestAssets,
   heinousCases,
+  controversies,
+  fundUsage,
 }: {
   assets: PoliticianProfile["assets_declarations"];
   cases: PoliticianProfile["criminal_cases"];
@@ -254,6 +261,8 @@ function TabLayout({
   attendance: PoliticianProfile["attendance_records"];
   latestAssets: PoliticianProfile["assets_declarations"][0] | null;
   heinousCases: PoliticianProfile["criminal_cases"];
+  controversies: PoliticianProfile["controversies"];
+  fundUsage: PoliticianProfile["fund_usage"];
 }) {
   return (
     <div>
@@ -468,7 +477,7 @@ function TabLayout({
                   </span>
                 </div>
 
-                {c.case_description && (
+                {c.case_description && !/^\s*(?:Rs\.?\s*)?[\d,]+(?:\.\d+)?\s*(?:~[\d.]+\s*(?:Lacs?|Crore|Lakhs?)\+?)?\s*$/.test(c.case_description) && (
                   <p className="text-xs text-text-secondary mb-2 leading-relaxed">
                     {c.case_description}
                   </p>
@@ -486,10 +495,15 @@ function TabLayout({
                   {c.source_url && (
                     <DataSourceTag source="myneta" url={c.source_url} />
                   )}
-                  {/* eCourts Phase 3 stub */}
-                  <span className="font-mono text-2xs text-text-muted border border-border/30 px-1.5 py-0.5 rounded-sm opacity-50">
-                    eCourts live — Phase 3
-                  </span>
+                  {c.ecourts_case_id ? (
+                    <span className="font-mono text-2xs text-safe border border-safe/30 px-1.5 py-0.5 rounded-sm">
+                      eCourts: {c.ecourts_case_id}
+                    </span>
+                  ) : (
+                    <span className="font-mono text-2xs text-text-muted border border-border/30 px-1.5 py-0.5 rounded-sm opacity-50">
+                      eCourts: not linked
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -606,14 +620,59 @@ function TabLayout({
           </div>
         )}
 
-        {/* MPLAD stub */}
-        <div className="mt-6">
-          <PhaseStub
-            phase={3}
-            feature="MPLAD Fund Usage"
-            description="Track how this MP spends their ₹5 Cr annual MPLAD development fund — project-wise allocation and utilization."
-          />
-        </div>
+        {/* MPLAD Fund Usage */}
+        {fundUsage.length > 0 && (
+          <div className="mt-8">
+            <h3 className="font-mono text-text-secondary text-xs uppercase tracking-widest mb-4">
+              MPLAD Fund Usage
+            </h3>
+            <div className="space-y-3">
+              {[...fundUsage]
+                .sort((a, b) => (b.financial_year ?? "").localeCompare(a.financial_year ?? ""))
+                .map((fund) => (
+                  <div key={fund.id} className="bg-surface border border-border rounded-sm p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-mono text-xs text-text-primary font-semibold">
+                        FY {fund.financial_year}
+                      </span>
+                      {fund.utilization_percent != null && (
+                        <span className={`font-mono text-xs font-semibold ${
+                          fund.utilization_percent >= 75 ? "text-safe" :
+                          fund.utilization_percent >= 50 ? "text-warning" :
+                          "text-danger"
+                        }`}>
+                          {fund.utilization_percent}% utilized
+                        </span>
+                      )}
+                    </div>
+                    {fund.utilization_percent != null && (
+                      <div className="w-full bg-surface-2 rounded-sm h-2 mb-2">
+                        <div
+                          className={`h-2 rounded-sm ${
+                            fund.utilization_percent >= 75 ? "bg-safe" :
+                            fund.utilization_percent >= 50 ? "bg-warning" :
+                            "bg-danger"
+                          }`}
+                          style={{ width: `${Math.min(fund.utilization_percent, 100)}%` }}
+                        />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-4 text-2xs font-mono text-text-muted">
+                      {fund.total_allocated != null && (
+                        <span>Allocated: {formatIndianCurrency(fund.total_allocated)}</span>
+                      )}
+                      {fund.total_released != null && (
+                        <span>Released: {formatIndianCurrency(fund.total_released)}</span>
+                      )}
+                      {fund.total_utilized != null && (
+                        <span>Utilized: {formatIndianCurrency(fund.total_utilized)}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Tab 5: Companies (Phase 2) */}
@@ -628,16 +687,89 @@ function TabLayout({
         />
       </section>
 
-      {/* Tab 6: Controversies (Phase 3) */}
+      {/* Tab 6: Controversies */}
       <section id="controversies" className="mb-8 scroll-mt-20">
         <h2 className="font-mono text-text-secondary text-xs uppercase tracking-widest mb-6">
           Controversies & News
         </h2>
-        <PhaseStub
-          phase={3}
-          feature="Controversy Tracker"
-          description="Verified controversies, news-linked allegations, and ED/CBI/IT raids for this politician."
-        />
+
+        {controversies.length === 0 ? (
+          <div className="bg-safe/5 border border-safe/30 p-6 rounded-sm text-center">
+            <p className="font-mono text-safe text-sm">
+              No controversies tracked
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {[...controversies]
+              .sort((a, b) => (b.date_of_incident ?? "").localeCompare(a.date_of_incident ?? ""))
+              .map((c) => {
+                const severityColors: Record<string, string> = {
+                  critical: "border-danger/40 bg-danger/5",
+                  high: "border-warning/40 bg-warning/5",
+                  medium: "border-border",
+                  low: "border-border",
+                };
+                const severityBadge: Record<string, string> = {
+                  critical: "bg-danger/20 text-danger border-danger/50",
+                  high: "bg-warning/20 text-warning border-warning/50",
+                  medium: "bg-surface-2 text-text-secondary border-border",
+                  low: "bg-surface-2 text-text-muted border-border",
+                };
+                return (
+                  <div
+                    key={c.id}
+                    className={`bg-surface border rounded-sm p-4 ${
+                      severityColors[c.severity ?? "low"] ?? "border-border"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <h3 className="text-sm text-text-primary font-medium leading-snug">
+                        {c.title}
+                      </h3>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {c.is_verified && (
+                          <span className="font-mono text-2xs bg-safe/20 text-safe border border-safe/50 px-1.5 py-0.5 rounded-sm">
+                            VERIFIED
+                          </span>
+                        )}
+                        <span className={`font-mono text-2xs px-1.5 py-0.5 border rounded-sm ${
+                          severityBadge[c.severity ?? "low"] ?? ""
+                        }`}>
+                          {c.severity ?? "low"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {c.description && (
+                      <p className="text-xs text-text-secondary mb-2 leading-relaxed line-clamp-2">
+                        {c.description}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3 text-2xs font-mono text-text-muted">
+                      {c.date_of_incident && (
+                        <span>{formatDate(c.date_of_incident)}</span>
+                      )}
+                      {c.controversy_type && (
+                        <span className="uppercase">{c.controversy_type.replace(/_/g, " ")}</span>
+                      )}
+                      {(c.news_links ?? []).length > 0 && (
+                        <a
+                          href={(c.news_links as string[])[0]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-accent hover:underline"
+                        >
+                          Source
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
       </section>
     </div>
   );

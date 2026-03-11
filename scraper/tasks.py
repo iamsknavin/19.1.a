@@ -1,5 +1,5 @@
 """
-Celery task definitions — Phase 2E.
+Celery task definitions — Phase 2E + Phase 3.
 Each task wraps a Scrapy spider or utility function for scheduled execution.
 """
 import logging
@@ -129,5 +129,34 @@ def sync_search_index(self):
             timeout=120,
         )
         return {"status": resp.status_code, "body": resp.text[:200]}
+    except Exception as exc:
+        self.retry(exc=exc)
+
+
+# --- Phase 3 tasks ---
+
+@app.task(bind=True, max_retries=2, default_retry_delay=300)
+def scrape_controversies(self):
+    """Daily: Scrape Google News for politician controversies."""
+    try:
+        return _run_spider("news")
+    except Exception as exc:
+        self.retry(exc=exc)
+
+
+@app.task(bind=True, max_retries=2, default_retry_delay=300)
+def update_ecourts_status(self):
+    """Weekly: Poll eCourts for live case status updates."""
+    try:
+        return _run_spider("ecourts")
+    except Exception as exc:
+        self.retry(exc=exc)
+
+
+@app.task(bind=True, max_retries=2, default_retry_delay=300)
+def scrape_mplad_funds(self):
+    """Monthly: Scrape MPLADS portal for fund utilization data."""
+    try:
+        return _run_spider("mplad")
     except Exception as exc:
         self.retry(exc=exc)

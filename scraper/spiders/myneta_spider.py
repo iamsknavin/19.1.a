@@ -500,52 +500,81 @@ class MyNetaSpider(scrapy.Spider):
 
         return assets
 
-    def _extract_criminal_cases(self, response: Response) -> list[dict]:
-        """Extract criminal cases from the page."""
-        cases = []
+    # Column header keywords → field name mapping for criminal case tables
+    _CASE_HEADER_MAP = {
+        "ipc": "ipc_sections_raw",
+        "section": "ipc_sections_raw",
+        "act": "ipc_sections_raw",
+        "court": "court_name",
+        "case no": "case_number",
+        "case number": "case_number",
+        "case type": "case_description",
+        "description": "case_description",
+        "details": "case_description",
+        "status": "status",
+        "stage": "status",
+        "penalty": "_penalty",
+        "fine": "_penalty",
+        "punishment": "_penalty",
+    }
 
-        # Look for criminal cases section/table
+    def _detect_column_map(self, header_row) -> dict[int, str]:
+        """Build column-index → field-name map from <th>/<td> header cells."""
+        cells = header_row.css("th, td")
+        col_map: dict[int, str] = {}
+        for idx, cell in enumerate(cells):
+            text = " ".join(cell.css("::text").getall()).strip().lower()
+            for keyword, field in self._CASE_HEADER_MAP.items():
+                if keyword in text:
+                    col_map[idx] = field
+                    break
+        return col_map
+
+    def _extract_criminal_cases(self, response: Response) -> list[dict]:
+        """Extract criminal cases from the page using dynamic column detection."""
+        cases = []
+        house = response.meta.get("house", "lok_sabha")
+        decl_year = response.meta.get("vs_year") or DECLARATION_YEARS.get(house, 2024)
+
         for table in response.css("table"):
             table_text = table.get().lower()
-            if "criminal" in table_text or "case" in table_text or "ipc" in table_text:
-                for tr in table.css("tr"):
-                    cells = tr.css("td")
-                    if len(cells) < 2:
-                        continue
+            if not ("criminal" in table_text or "case" in table_text or "ipc" in table_text):
+                continue
 
-                    cell_texts = [c.css("::text").getall() for c in cells]
-                    row_text = " ".join(
-                        [" ".join(t) for t in cell_texts]
-                    ).lower()
+            rows = table.css("tr")
+            if not rows:
+                continue
 
-                    # Skip header rows
-                    if any(h in row_text for h in ["section", "court", "case no", "status"]):
-                        continue
+            # Detect column mapping from header row
+            col_map = self._detect_column_map(rows[0])
 
-                    # Build case row
-                    raw_case: dict[str, Any] = {
-                        "source_url": response.url,
-                        "declaration_year": 2024,
-                    }
+            # Fallback: if no headers detected, use legacy positional mapping
+            if not col_map:
+                col_map = {0: "ipc_sections_raw", 1: "court_name", 2: "case_description", 3: "status"}
 
-                    # Try to identify columns by position or content
-                    all_texts = [" ".join(c.css("::text").getall()).strip() for c in cells]
+            for tr in rows[1:]:
+                cells = tr.css("td")
+                if len(cells) < 2:
+                    continue
 
-                    if len(all_texts) >= 1:
-                        raw_case["ipc_sections_raw"] = all_texts[0]
-                    if len(all_texts) >= 2:
-                        raw_case["court_name"] = all_texts[1]
-                    if len(all_texts) >= 3:
-                        raw_case["case_description"] = all_texts[2]
-                    if len(all_texts) >= 4:
-                        raw_case["status"] = all_texts[3]
+                all_texts = [" ".join(c.css("::text").getall()).strip() for c in cells]
 
-                    # Only include rows that have IPC sections
-                    ipc = parse_ipc_sections(raw_case.get("ipc_sections_raw", ""))
-                    if ipc:
-                        parsed = parse_case_row(raw_case)
-                        if parsed.get("ipc_sections"):
-                            cases.append(parsed)
+                raw_case: dict[str, Any] = {
+                    "source_url": response.url,
+                    "declaration_year": decl_year,
+                }
+
+                for idx, text in enumerate(all_texts):
+                    field = col_map.get(idx)
+                    if field and not field.startswith("_"):
+                        raw_case[field] = text
+
+                # Only include rows that have IPC sections
+                ipc = parse_ipc_sections(raw_case.get("ipc_sections_raw", ""))
+                if ipc:
+                    parsed = parse_case_row(raw_case)
+                    if parsed.get("ipc_sections"):
+                        cases.append(parsed)
 
         return cases
 

@@ -22,6 +22,7 @@ export interface PoliticianProfile extends Politician {
   company_interests: CompanyInterest[];
   corruption_signals: CorruptionSignal[];
   controversies: Controversy[];
+  fund_usage: FundUsage[];
 }
 
 /** Lightweight politician for cards and lists */

@@ -1,14 +1,14 @@
 export const PHASE_CONFIG = {
-  current: 2,
+  current: 3,
   features: {
     company_interests: false, // Phase 2
     tender_tracking: false, // Phase 2
     corruption_signals: true, // Phase 2 — LIVE
     mla_data: true, // Phase 2 — LIVE
-    ecourts_live: false, // Phase 3
-    controversy_tracker: false, // Phase 3
-    mplad_tracking: false, // Phase 3
-    public_api: false, // Phase 3
+    ecourts_live: true, // Phase 3 — LIVE
+    controversy_tracker: true, // Phase 3 — LIVE
+    mplad_tracking: true, // Phase 3 — LIVE
+    public_api: true, // Phase 3 — LIVE
   },
 } as const;
 
@@ -44,5 +44,20 @@ export const DATA_SOURCES = {
     name: "GeM Portal",
     url: "https://gem.gov.in",
     description: "Government e-Marketplace procurement data (Phase 2)",
+  },
+  ecourts: {
+    name: "eCourts India",
+    url: "https://ecourts.gov.in",
+    description: "Live case status from the national court data portal",
+  },
+  gnews: {
+    name: "Google News",
+    url: "https://news.google.com",
+    description: "Controversy and news tracking via RSS feeds",
+  },
+  mplads: {
+    name: "MPLADS Portal",
+    url: "https://www.mplads.gov.in",
+    description: "MP Local Area Development Scheme fund utilization data",
   },
 } as const;

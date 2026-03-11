@@ -86,6 +86,12 @@ class SupabasePipeline:
             self._process_company(item, spider)
         elif item_type == "tender":
             self._process_tender(item, spider)
+        elif item_type == "controversy":
+            self._process_controversy(item, spider)
+        elif item_type == "ecourts_update":
+            self._process_ecourts_update(item, spider)
+        elif item_type == "fund_usage":
+            self._process_fund_usage(item, spider)
         else:
             logger.warning(f"Unknown item_type: {item_type}")
 
@@ -303,4 +309,67 @@ class SupabasePipeline:
             self.stats["attendance"] += 1
         except Exception as e:
             logger.error(f"❌ Failed to save attendance for {mp_name}: {e}")
+            self.stats["errors"] += 1
+
+    def _process_controversy(self, item: dict[str, Any], spider):
+        """Insert controversy record."""
+        if self.dry_run:
+            return
+        try:
+            data = {
+                "politician_id": item["politician_id"],
+                "title": item.get("title"),
+                "description": item.get("description"),
+                "controversy_type": item.get("controversy_type"),
+                "severity": item.get("severity"),
+                "date_of_incident": item.get("date_of_incident"),
+                "news_links": item.get("news_links", []),
+                "is_verified": item.get("is_verified", False),
+                "is_active": item.get("is_active", True),
+            }
+            self.supabase.table("controversies").insert(data).execute()
+            self.stats["controversies"] = self.stats.get("controversies", 0) + 1
+        except Exception as e:
+            logger.error(f"❌ Failed to save controversy: {e}")
+            self.stats["errors"] += 1
+
+    def _process_ecourts_update(self, item: dict[str, Any], spider):
+        """Update existing criminal case with eCourts live data."""
+        if self.dry_run:
+            return
+        try:
+            update_data: dict[str, Any] = {}
+            if item.get("ecourts_case_id"):
+                update_data["ecourts_case_id"] = item["ecourts_case_id"]
+            if item.get("current_status"):
+                update_data["current_status"] = item["current_status"]
+
+            if update_data:
+                self.supabase.table("criminal_cases").update(
+                    update_data
+                ).eq("id", item["case_id"]).execute()
+                self.stats["ecourts"] = self.stats.get("ecourts", 0) + 1
+        except Exception as e:
+            logger.error(f"❌ Failed to update eCourts case: {e}")
+            self.stats["errors"] += 1
+
+    def _process_fund_usage(self, item: dict[str, Any], spider):
+        """Upsert MPLAD/MLA-LAD fund usage record."""
+        if self.dry_run:
+            return
+        try:
+            data = {
+                "politician_id": item["politician_id"],
+                "fund_type": item.get("fund_type", "mplad"),
+                "financial_year": item.get("financial_year"),
+                "total_allocated": item.get("total_allocated"),
+                "total_released": item.get("total_released"),
+                "total_utilized": item.get("total_utilized"),
+                "utilization_percent": item.get("utilization_percent"),
+                "source_url": item.get("source_url"),
+            }
+            self.supabase.table("fund_usage").insert(data).execute()
+            self.stats["funds"] = self.stats.get("funds", 0) + 1
+        except Exception as e:
+            logger.error(f"❌ Failed to save fund usage: {e}")
             self.stats["errors"] += 1

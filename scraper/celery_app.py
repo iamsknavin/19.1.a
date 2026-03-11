@@ -60,4 +60,19 @@ app.conf.beat_schedule = {
         "task": "tasks.sync_search_index",
         "schedule": crontab(hour=5, minute=0),
     },
+    # Phase 3: Daily news controversy scan
+    "scrape-news-daily": {
+        "task": "tasks.scrape_controversies",
+        "schedule": crontab(hour=6, minute=0),
+    },
+    # Phase 3: Weekly eCourts case status update
+    "scrape-ecourts-weekly": {
+        "task": "tasks.update_ecourts_status",
+        "schedule": crontab(hour=7, minute=0, day_of_week="sunday"),
+    },
+    # Phase 3: Monthly MPLAD fund utilization
+    "scrape-mplad-monthly": {
+        "task": "tasks.scrape_mplad_funds",
+        "schedule": crontab(hour=8, minute=0, day_of_month="1"),
+    },
 }
