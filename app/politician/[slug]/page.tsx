@@ -454,7 +454,7 @@ function TabLayout({
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex flex-wrap gap-1.5">
-                    {(c.ipc_sections ?? []).map((section) => (
+                    {(c.ipc_sections ?? []).filter((s) => !/^(19|20)\d{2}$/.test(s)).map((section) => (
                       <span
                         key={section}
                         className="font-mono text-2xs bg-surface-2 border border-border px-1.5 py-0.5 rounded-sm text-text-secondary"
@@ -484,7 +484,7 @@ function TabLayout({
                 )}
 
                 <div className="flex flex-wrap gap-4 text-2xs font-mono text-text-muted">
-                  {c.court_name && <span>{c.court_name}</span>}
+                  {c.court_name && !/^\s*(?:Rs\.?\s*)?[\d,]+/.test(c.court_name) && <span>{c.court_name}</span>}
                   {c.date_of_filing && (
                     <span>Filed: {formatDate(c.date_of_filing)}</span>
                   )}
