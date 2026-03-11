@@ -458,35 +458,61 @@ class MyNetaSpider(scrapy.Spider):
         return None
 
     def _extract_assets(self, response: Response) -> dict[str, Any]:
-        """Extract assets table data."""
+        """Extract assets table data.
+
+        MyNeta asset tables have columns:
+            Sr No | Description | Self | Spouse | HUF | Dependent1 | ...
+        We need column 1 (description) as label and column 2 (self) as value.
+        Some tables also have a summary row like "Gross Total Value" at the end.
+        """
         rows = []
 
         # MyNeta assets are in a table — find by looking for "Movable Assets" header
         for table in response.css("table"):
             table_text = table.get().lower()
-            if "movable" in table_text or "immovable" in table_text or "assets" in table_text:
+            if "movable" in table_text or "immovable" in table_text:
                 for tr in table.css("tr"):
-                    cells = tr.css("td::text").getall()
-                    if len(cells) >= 2:
-                        label = cells[0].strip()
-                        value = cells[-1].strip()
+                    cells = tr.css("td")
+                    if len(cells) >= 3:
+                        # Multi-column: Sr No | Description | Self | Spouse | ...
+                        # Use description (col 1) as label, self (col 2) as value
+                        label = " ".join(cells[1].css("::text").getall()).strip()
+                        value = " ".join(cells[2].css("::text").getall()).strip()
+                        if label and value:
+                            rows.append({"label": label, "value": value})
+                    elif len(cells) == 2:
+                        # Two-column summary row: Label | Value
+                        label = " ".join(cells[0].css("::text").getall()).strip()
+                        value = " ".join(cells[1].css("::text").getall()).strip()
                         if label and value:
                             rows.append({"label": label, "value": value})
 
+        # Also grab the summary table that shows "Assets: Rs X" and "Liabilities: Rs Y"
+        for table in response.css("table"):
+            table_text = table.get().lower()
+            if "assets" in table_text and "liabilit" in table_text and "movable" not in table_text:
+                for tr in table.css("tr"):
+                    cells = tr.css("td")
+                    if len(cells) == 2:
+                        label = " ".join(cells[0].css("::text").getall()).strip()
+                        value = " ".join(cells[1].css("::text").getall()).strip()
+                        if label and value and ("Rs" in value or "Nil" in value):
+                            rows.append({"label": label, "value": value})
+
         if not rows:
-            # Try alternate: look for Rs. values in any table
+            # Fallback: look for Rs. values in any table
             for table in response.css("table"):
                 for tr in table.css("tr"):
                     cells = tr.css("td")
                     if len(cells) >= 2:
-                        label = cells[0].css("::text").get("").strip()
+                        label = " ".join(cells[0].css("::text").getall()).strip()
                         value_text = " ".join(cells[-1].css("::text").getall()).strip()
                         if "Rs" in value_text or "₹" in value_text:
                             rows.append({"label": label, "value": value_text})
 
         assets = parse_assets_table(rows)
 
-        # Try to also extract summary figures directly
+        # Try to also extract summary figures directly from page text
         # Some pages show "Total Assets: Rs. X" prominently
         full_text = " ".join(response.css("::text").getall())
         if "net_worth" not in assets or assets.get("net_worth") is None:
@@ -497,6 +523,13 @@ class MyNetaSpider(scrapy.Spider):
             )
             if net_worth_match:
                 assets["net_worth"] = parse_amount(net_worth_match.group(1))
+
+        # Compute net worth from total_assets - total_liabilities if missing
+        if "net_worth" not in assets or assets.get("net_worth") is None:
+            ta = assets.get("total_assets")
+            tl = assets.get("total_liabilities", 0)
+            if ta is not None:
+                assets["net_worth"] = ta - (tl or 0)
 
         return assets
 

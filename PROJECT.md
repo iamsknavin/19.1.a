@@ -25,15 +25,16 @@
 
 NETAwatch aggregates publicly available data about Indian elected representatives — criminal cases, asset declarations, parliamentary attendance, corruption signals, MPLAD fund usage, and news controversies — into a single, searchable platform. All data comes from mandatory public disclosures and government portals.
 
-**Live Stats (as of 2026-03-11):**
+**Live Stats (as of 2026-03-12):**
 
 | Metric               | Count  |
 | --------------------- | ------ |
-| Politicians           | 549    |
+| Politicians           | 550    |
 | Lok Sabha MPs         | 545    |
 | Vidhan Sabha MLAs     | 4      |
 | Parties               | 35     |
-| Criminal Cases        | 1,574  |
+| Criminal Cases        | 1,701  |
+| Asset Declarations    | 545    |
 | Corruption Signals    | 29     |
 | Controversies         | 1,814  |
 | Attendance Records    | 66     |
@@ -584,6 +585,14 @@ docker run -d -p 7700:7700 \
 ---
 
 ## Changelog
+
+### 2026-03-12 — Asset Parser Fix + Full Re-scrape
+- **Fixed:** Asset extraction was reading wrong table columns (grabbed `dependent3` instead of `self`)
+- **Fixed:** MyNeta asset tables have multi-column layout: `Sr No | Description | Self | Spouse | HUF | Dep1...` — now reads col 1 (description) as label and col 2 (self) as value
+- **Fixed:** Added unique constraint `uq_assets_politician_year` on `assets_declarations(politician_id, declaration_year)` — was missing, causing upserts to silently fail
+- **Fixed:** `parse_assets_table()` improved: skips header rows, skips descriptive text in values, handles summary table (`Assets: Rs X` / `Liabilities: Rs X`), computes net worth from total_assets - total_liabilities
+- **Data:** Full MyNeta re-scrape: 546 politicians, 1,701 criminal cases, 545 asset declarations
+- **Data:** Average MP net worth: ~Rs 39.25 Cr, max ~Rs 4,667 Cr
 
 ### 2026-03-11 — Phase 3 Finalization
 - **Added:** API docs link to Header navigation and Footer platform links
