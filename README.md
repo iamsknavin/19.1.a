@@ -2,20 +2,24 @@
 
 **Indian politician transparency platform.** Every rupee. Every case. Every vote. Public record.
 
-Track Lok Sabha and Rajya Sabha MP wealth declarations, criminal cases, and parliamentary performance — all sourced from mandatory public disclosures.
+Track Lok Sabha MPs, State MLAs, wealth declarations, criminal cases, controversies, and parliamentary performance — all sourced from mandatory public disclosures.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Open Source](https://img.shields.io/badge/open-source-blue.svg)](https://github.com/netawatch/netawatch)
+[![Open Source](https://img.shields.io/badge/open-source-blue.svg)](https://github.com/iamsknavin/netawatch)
 
 ---
 
 ## What it does
 
 - **Assets & Wealth** — Net worth, movable and immovable assets from ECI affidavits
-- **Criminal Cases** — Self-declared cases with IPC sections, court names, and status
+- **Criminal Cases** — Self-declared cases with IPC sections, court names, eCourts linking
+- **Controversy Tracker** — Google News RSS monitoring with severity badges
+- **Parliamentary Performance** — Attendance, questions, debates from PRS India
+- **Corruption Signals** — Automated risk detection based on declared data
+- **MPLAD Fund Tracking** — MP fund allocation and utilization data
 - **Party Analysis** — Aggregate stats per party: wealth, cases, seat count
 - **Search** — Fast full-text search via Meilisearch (name, party, constituency)
-- **State Filter** — Click-through India map to filter by state
+- **Public REST API** — `/api/v1/` endpoints for researchers and journalists
 
 ## Tech Stack
 
@@ -27,13 +31,17 @@ Track Lok Sabha and Rajya Sabha MP wealth declarations, criminal cases, and parl
 | Scraper | Python + Scrapy |
 | Hosting | Vercel (frontend) + Supabase (DB) |
 
-## Phases
+## Current Data
 
-| Phase | Status | Scope |
-|-------|--------|-------|
-| **1** | ✅ Current | Lok Sabha + Rajya Sabha MPs, assets, criminal cases |
-| **2** | Planned | State MLAs, company interests, tender tracking, corruption signals |
-| **3** | Planned | MPLAD funds, eCourts live, controversy tracker, public API |
+| Table | Records | Source |
+|-------|---------|--------|
+| Politicians | 551 | MyNeta / ADR + ECI |
+| Criminal Cases | 717 | ECI Affidavits (via MyNeta) |
+| Asset Declarations | 545 | ECI Affidavits (via MyNeta) |
+| Controversies | 1,814 | Google News RSS |
+| Attendance Records | 66 | PRS Legislative Research |
+| Corruption Signals | 29 | Auto-generated |
+| Parties | 35 | Manual + ECI |
 
 ---
 
@@ -49,7 +57,7 @@ Track Lok Sabha and Rajya Sabha MP wealth declarations, criminal cases, and parl
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/netawatch/netawatch.git
+git clone https://github.com/iamsknavin/netawatch.git
 cd netawatch
 npm install
 ```
@@ -93,17 +101,22 @@ cp .env.example .env
 # Edit .env with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
 ```
 
-### Dry run (no DB writes — test first):
+### Available spiders:
 ```bash
-scrapy crawl myneta -a dry_run=true
-scrapy crawl myneta -a house=lok_sabha -a limit=10 -a dry_run=true
+scrapy crawl myneta                          # Lok Sabha winners
+scrapy crawl myneta -a house=vidhan_sabha    # State MLAs
+scrapy crawl prs_attendance                  # PRS attendance data
+scrapy crawl news                            # Google News controversies
+scrapy crawl ecourts                         # eCourts case updates
+scrapy crawl mplad                           # MPLAD fund data
+scrapy crawl mca21                           # Company interests (free, no API key)
+scrapy crawl gem                             # GeM tenders (needs company data)
 ```
 
-### Live run:
+### Dry run (no DB writes — test first):
 ```bash
-scrapy crawl myneta -a house=lok_sabha      # Lok Sabha only
-scrapy crawl myneta -a house=rajya_sabha    # Rajya Sabha only
-scrapy crawl myneta                          # Both houses (~790 MPs)
+scrapy crawl myneta -a dry_run=true -a limit=10
+scrapy crawl news -a dry_run=true -a limit=5
 ```
 
 ### Sync to Meilisearch (after scraping):
@@ -111,11 +124,6 @@ scrapy crawl myneta                          # Both houses (~790 MPs)
 curl -X POST http://localhost:3000/api/sync-search \
   -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY"
 ```
-
-### If MyNeta rate-limits:
-1. Set `DOWNLOAD_DELAY = 3` in `scraper/settings.py`
-2. Enable HTTP cache: `HTTPCACHE_ENABLED = True` in settings.py
-3. Add proxy rotation: `pip install scrapy-rotating-proxies` + uncomment in settings.py
 
 ---
 
@@ -125,10 +133,12 @@ curl -X POST http://localhost:3000/api/sync-search \
 |--------|-----|------|
 | MyNeta / ADR | myneta.info | Affidavit summaries, criminal cases |
 | Election Commission | affidavit.eci.gov.in | Official ECI PDFs |
-| PRS India | prsindia.org | Parliamentary attendance (Phase 2) |
-| Sansad.in | sansad.in | Official Lok Sabha data (Phase 2) |
-| MCA21 | mca.gov.in | Company directorships (Phase 2) |
-| GeM Portal | gem.gov.in | Government tenders (Phase 2) |
+| PRS India | prsindia.org | Parliamentary attendance |
+| Google News | news.google.com | Controversy tracking (RSS) |
+| eCourts India | ecourts.gov.in | Live case status |
+| MPLADS Portal | mplads.gov.in | Fund utilization data |
+| MyNeta RS Interests | myneta.info | Company directorships |
+| GeM Portal | gem.gov.in | Government tenders |
 
 ---
 
@@ -152,8 +162,6 @@ MEILISEARCH_ADMIN_KEY=           # Admin key (server only)
 3. Commit changes: `git commit -m "Add my feature"`
 4. Push: `git push origin feature/my-feature`
 5. Open a Pull Request
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
