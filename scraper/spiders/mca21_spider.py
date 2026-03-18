@@ -275,7 +275,7 @@ class Mca21Spider(scrapy.Spider):
         t = text.strip().lower()
         return t in (
             "nil", "none", "not applicable", "na", "n/a", "no",
-            "not any", "nill", "-", "0", "", "null",
+            "not any", "nill", "-", "0", "", "null", "yes",
         ) or t.startswith("nil") or t.startswith("not applicable")
 
     def _is_business_profession(self, prof: str) -> bool:
