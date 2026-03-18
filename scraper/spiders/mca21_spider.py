@@ -1,19 +1,17 @@
 """
-Company Interests Spider — scrapes politician-linked business directorships.
+Company Interests Spider — extracts govt contract declarations from MyNeta affidavits.
 
-Strategy (no paid API needed):
-  1. MyNeta RS Interest declarations: myneta.info/InterestbyRajyasabhaMember/
-     - Lists directorships, shareholdings, remunerative activities
-  2. MyNeta affidavit profession fields for LS/MLA candidates
-     - Self-declared professions like "Business", "Directorship"
-  3. Future: MCA V3 Director Master Data (requires captcha solving)
+Strategy:
+  1. Crawl MyNeta LS 2024 winner pages (same pages myneta_spider visits)
+  2. Extract "Contracts with appropriate Govt" section from each affidavit
+  3. Extract "Profession or Occupation" for business/directorship signals
+  4. Match to our DB politicians and yield company_interest items
 
-Sources:
-  - MyNeta "Declaration of Interests by Rajya Sabha Member"
-  - MyNeta candidate affidavit pages (profession field)
+Most candidates declare "Nil" for contracts, but those who don't provide
+real company/entity names that populate the company_interests table.
 
 Usage:
-  scrapy crawl mca21                     # all politicians
+  scrapy crawl mca21                     # all LS 2024 winners
   scrapy crawl mca21 -a limit=10         # test with 10
   scrapy crawl mca21 -a dry_run=true     # preview only
 """
@@ -28,16 +26,16 @@ from scrapy.http import Response
 
 logger = logging.getLogger(__name__)
 
-RS_INTERESTS_URL = "https://myneta.info/InterestbyRajyasabhaMember/"
+LS_2024_URL = "https://www.myneta.info/LokSabha2024/"
 
 
 class Mca21Spider(scrapy.Spider):
-    """Scrapes company/business interests from MyNeta interest declarations."""
+    """Scrapes MyNeta affidavit pages for govt contract & business interest data."""
 
     name = "mca21"
-    allowed_domains = ["myneta.info"]
+    allowed_domains = ["myneta.info", "www.myneta.info"]
     custom_settings = {
-        "DOWNLOAD_DELAY": 2.0,
+        "DOWNLOAD_DELAY": 1.5,
         "RANDOMIZE_DOWNLOAD_DELAY": True,
         "CONCURRENT_REQUESTS": 2,
     }
@@ -47,10 +45,11 @@ class Mca21Spider(scrapy.Spider):
         self.dry_run = dry_run.lower() == "true"
         self.limit = int(limit)
         self._count = 0
-        self._politician_map: dict[str, str] = {}  # name -> politician_id
+        self._politician_map: dict[str, str] = {}  # normalized name → politician_id
+        self._const_map: dict[str, str] = {}  # (name, constituency) → politician_id
 
     def start_requests(self) -> Generator:
-        # Load politicians from DB to match names
+        # Load politicians from DB for name matching
         from dotenv import load_dotenv
         load_dotenv()
         from supabase import create_client
@@ -62,138 +61,232 @@ class Mca21Spider(scrapy.Spider):
             return
 
         sb = create_client(url, key)
-        result = sb.table("politicians").select("id, name").execute()
+        result = sb.table("politicians").select("id, name, constituency").execute()
 
-        for politician in result.data or []:
-            # Normalize name for matching: "MODI, NARENDRA" -> "narendra modi"
-            name = politician["name"].strip().lower()
-            self._politician_map[name] = politician["id"]
-            # Also store reversed form (last, first -> first last)
-            parts = [p.strip() for p in name.split(",")]
-            if len(parts) == 2:
-                self._politician_map[f"{parts[1]} {parts[0]}"] = politician["id"]
+        for p in result.data or []:
+            name = self._normalize(p["name"])
+            self._politician_map[name] = p["id"]
+            # Also store with constituency for disambiguation
+            const = (p.get("constituency") or "").strip().upper()
+            const = re.sub(r"\(SC\)|\(ST\)", "", const).strip()
+            if const:
+                self._const_map[(name, const)] = p["id"]
 
         logger.info(f"Loaded {len(result.data or [])} politicians for matching")
 
-        # Step 1: Scrape RS Interest declarations
-        yield scrapy.Request(
-            RS_INTERESTS_URL,
-            callback=self.parse_rs_interests_list,
-        )
+        # Start from LS 2024 index — get all winner pages
+        yield scrapy.Request(LS_2024_URL, callback=self.parse_index)
 
-    def _match_politician(self, name: str) -> str | None:
-        """Fuzzy match a name to our politician database."""
-        normalized = name.strip().lower()
-        normalized = re.sub(r"\s+", " ", normalized)
-        # Strip common prefixes
-        normalized = re.sub(
-            r"^(shri|smt|dr|adv|prof|justice|sri|mr|mrs|ms)\.?\s+",
-            "",
-            normalized,
-        )
+    def _normalize(self, name: str) -> str:
+        """Lowercase, strip titles, collapse whitespace."""
+        n = name.strip().lower()
+        n = re.sub(r"^(shri|smt|dr|adv|prof|justice|sri|mr|mrs|ms)\.?\s+", "", n)
+        n = re.sub(r"\s+", " ", n)
+        return n
 
-        # Direct match
-        if normalized in self._politician_map:
-            return self._politician_map[normalized]
-
-        # Try partial matching (last name, first name)
-        for db_name, pid in self._politician_map.items():
-            if normalized in db_name or db_name in normalized:
+    def _match_politician(self, name: str, constituency: str | None = None) -> str | None:
+        """Match name to politician ID."""
+        norm = self._normalize(name)
+        # Exact match
+        if norm in self._politician_map:
+            return self._politician_map[norm]
+        # With constituency
+        if constituency:
+            const_norm = constituency.strip().upper()
+            const_norm = re.sub(r"\(SC\)|\(ST\)", "", const_norm).strip()
+            pid = self._const_map.get((norm, const_norm))
+            if pid:
                 return pid
-
+        # Partial match
+        for db_name, pid in self._politician_map.items():
+            if norm in db_name or db_name in norm:
+                return pid
         return None
 
-    def parse_rs_interests_list(self, response: Response) -> Generator:
-        """Parse the list of RS members with interest declarations."""
-        # Find all member links
-        for link in response.css("table a[href*='candidate.php']"):
-            name = link.css("::text").get("").strip()
-            href = link.attrib.get("href", "")
-
-            if not name or not href:
+    def parse_index(self, response: Response) -> Generator:
+        """Parse LS 2024 index — follow winner candidate links."""
+        for row in response.css("table tr"):
+            link = row.css("a[href*='candidate.php']::attr(href)").get()
+            if not link:
                 continue
-
+            row_text = " ".join(row.css("::text").getall()).lower()
+            if "won" not in row_text and "winner" not in row_text:
+                continue
             if self.limit and self._count >= self.limit:
                 return
-
-            url = urljoin(response.url, href)
-            yield scrapy.Request(
-                url,
-                callback=self.parse_member_interests,
-                meta={"member_name": name},
-            )
+            url = urljoin(response.url, link)
+            yield scrapy.Request(url, callback=self.parse_candidate)
             self._count += 1
 
-    def parse_member_interests(self, response: Response) -> Generator:
-        """Parse individual member's interest declaration page."""
-        member_name = response.meta["member_name"]
-        politician_id = self._match_politician(member_name)
+        # Also follow state/constituency sub-pages
+        state_links = response.css(
+            "a[href*='state_id']::attr(href), a[href*='index.php?action=show']::attr(href)"
+        ).getall()
+        for href in set(state_links):
+            url = urljoin(response.url, href)
+            yield scrapy.Request(url, callback=self.parse_state_page)
 
-        if not politician_id:
-            logger.debug(f"No DB match for RS member: {member_name}")
+    def parse_state_page(self, response: Response) -> Generator:
+        """Parse state listing page for winner links."""
+        for row in response.css("table tr"):
+            link = row.css("a[href*='candidate.php']::attr(href)").get()
+            if not link:
+                continue
+            row_text = " ".join(row.css("::text").getall()).lower()
+            if "won" not in row_text and "winner" not in row_text:
+                continue
+            if self.limit and self._count >= self.limit:
+                return
+            url = urljoin(response.url, link)
+            yield scrapy.Request(url, callback=self.parse_candidate)
+            self._count += 1
+
+    def parse_candidate(self, response: Response) -> Generator:
+        """Extract contracts and profession from a candidate affidavit page."""
+        # Extract name from title
+        title = response.css("title::text").get("")
+        name_match = re.match(r"^([^(]+)", title)
+        name = name_match.group(1).strip() if name_match else ""
+
+        # Extract constituency from title
+        const_match = re.search(r"Constituency[-\s]+([^(]+)\(", title)
+        constituency = const_match.group(1).strip() if const_match else None
+
+        if not name:
             return
 
-        # Look for tables with directorship/company data
-        tables = response.css("table")
-        for table in tables:
-            table_text = table.css("::text").getall()
-            header_text = " ".join(table_text[:20]).lower()
+        politician_id = self._match_politician(name, constituency)
+        if not politician_id:
+            logger.debug(f"No DB match for: {name}")
+            return
 
-            # Look for directorship tables
-            if any(
-                kw in header_text
-                for kw in [
-                    "directorship",
-                    "company",
-                    "shareholding",
-                    "remunerative",
-                    "business",
-                    "interest",
-                ]
-            ):
-                for row in table.css("tr")[1:]:  # Skip header
-                    cells = row.css("td::text, td *::text").getall()
-                    cells = [c.strip() for c in cells if c.strip()]
+        # Get full page text organized by sections
+        # Look for h3 headers that indicate contracts/profession sections
+        page_html = response.text
 
-                    if len(cells) < 2:
-                        continue
+        # --- Extract "Contracts with appropriate Govt" ---
+        contracts = self._extract_contracts(response, page_html)
+        for contract in contracts:
+            item = {
+                "item_type": "company_interest",
+                "politician_id": politician_id,
+                "politician_name": name,
+                "company_name": contract["entity"],
+                "role": contract.get("role", "Government Contract"),
+                "company_type": "government_contract",
+                "company_status": None,
+                "cin": None,
+                "mca_data_url": None,
+                "source_url": response.url,
+            }
+            if self.dry_run:
+                logger.info(f"[DRY] {name} → {contract['entity']} ({contract.get('role', 'Govt Contract')})")
+            else:
+                logger.info(f"Found: {name} → {contract['entity']}")
+            yield item
 
-                    # Try to extract company name and role
-                    company_name = cells[0] if cells else None
-                    role = cells[1] if len(cells) > 1 else "Director"
+        # --- Extract profession/business info ---
+        professions = self._extract_profession(response, page_html)
+        for prof in professions:
+            if self._is_business_profession(prof):
+                item = {
+                    "item_type": "company_interest",
+                    "politician_id": politician_id,
+                    "politician_name": name,
+                    "company_name": prof,
+                    "role": "Self-declared profession",
+                    "company_type": "profession_declaration",
+                    "company_status": None,
+                    "cin": None,
+                    "mca_data_url": None,
+                    "source_url": response.url,
+                }
+                if self.dry_run:
+                    logger.info(f"[DRY] {name} → Profession: {prof}")
+                else:
+                    logger.info(f"Profession: {name} → {prof}")
+                yield item
 
-                    # Skip if it looks like a header or empty
-                    if not company_name or company_name.lower() in (
-                        "company name",
-                        "name",
-                        "sr no",
-                        "sl no",
-                        "s.no",
-                    ):
-                        continue
+    def _extract_contracts(self, response: Response, html: str) -> list[dict]:
+        """Extract government contract declarations from TABLE#contractdetails."""
+        contracts = []
 
-                    item = {
-                        "item_type": "company_interest",
-                        "politician_id": politician_id,
-                        "politician_name": member_name,
-                        "company_name": company_name,
-                        "role": role,
-                        "company_type": None,
-                        "company_status": None,
-                        "cin": None,
-                        "mca_data_url": None,
-                        "source_url": response.url,
-                    }
+        # MyNeta uses TABLE#contractdetails with inner .w3-table rows
+        # Each row: <td>label</td><td><b>value</b></td>
+        # Labels describe who (candidate, spouse, dependent, HUF, partnership, private co)
+        contract_table = response.css("TABLE#contractdetails .w3-table tr")
+        if not contract_table:
+            # Fallback: try lowercase id
+            contract_table = response.css("table#contractdetails .w3-table tr")
 
-                    if self.dry_run:
-                        logger.info(
-                            f"[DRY RUN] {member_name} → "
-                            f"{company_name} ({role})"
-                        )
-                    else:
-                        logger.info(
-                            f"Found: {member_name} → "
-                            f"{company_name} ({role})"
-                        )
+        for row in contract_table:
+            cells = row.css("td")
+            if len(cells) < 2:
+                continue
+            label = " ".join(cells[0].css("::text").getall()).strip()
+            value = " ".join(cells[1].css("b::text").getall()).strip()
+            if not value or self._is_nil(value):
+                continue
 
-                    yield item
+            # Determine role from label
+            role = "Government Contract"
+            label_lower = label.lower()
+            if "spouse" in label_lower:
+                role = "Govt Contract (Spouse)"
+            elif "dependent" in label_lower:
+                role = "Govt Contract (Dependent)"
+            elif "hindu undivided" in label_lower or "trust" in label_lower:
+                role = "Govt Contract (HUF/Trust)"
+            elif "partnership" in label_lower:
+                role = "Govt Contract (Partnership)"
+            elif "private" in label_lower:
+                role = "Govt Contract (Private Company)"
+
+            contracts.append({"entity": value, "role": role})
+
+        return contracts
+
+    def _extract_profession(self, response: Response, html: str) -> list[str]:
+        """Extract profession/occupation from TABLE#profession."""
+        professions = []
+
+        # MyNeta uses TABLE#profession with inner .w3-table rows
+        # Each row: <td>Self/Spouse</td><td><b>profession text</b></td>
+        prof_table = response.css("TABLE#profession .w3-table tr")
+        if not prof_table:
+            prof_table = response.css("table#profession .w3-table tr")
+
+        for row in prof_table:
+            cells = row.css("td")
+            if len(cells) < 2:
+                continue
+            label = " ".join(cells[0].css("::text").getall()).strip()
+            value = " ".join(cells[1].css("b::text").getall()).strip()
+            if not value or self._is_nil(value):
+                continue
+            # Only take "Self" profession (not spouse/dependent)
+            if label.strip().lower() == "self":
+                professions.append(value)
+
+        return professions
+
+    def _is_nil(self, text: str) -> bool:
+        """Check if text is a nil/empty declaration."""
+        t = text.strip().lower()
+        return t in (
+            "nil", "none", "not applicable", "na", "n/a", "no",
+            "not any", "nill", "-", "0", "", "null",
+        ) or t.startswith("nil") or t.startswith("not applicable")
+
+    def _is_business_profession(self, prof: str) -> bool:
+        """Check if a profession indicates business/directorship interests."""
+        keywords = [
+            "business", "director", "proprietor", "partner", "entrepreneur",
+            "industrialist", "manufacturer", "trader", "merchant", "exporter",
+            "importer", "contractor", "builder", "developer", "promoter",
+            "chairman", "managing", "ceo", "founder", "co-founder",
+            "company", "enterprise", "pvt", "ltd", "corporation",
+            "firm", "industries", "ventures", "group",
+        ]
+        lower = prof.lower()
+        return any(kw in lower for kw in keywords)

@@ -29,9 +29,10 @@ from scrapy.http import Response
 logger = logging.getLogger(__name__)
 
 PRS_BASE = "https://prsindia.org"
-# per-page=50 to fetch more per request (was 9, causing only page 1 to work)
-LIST_URL_TPL = f"{PRS_BASE}/mptrack?slug1=18th-lok-sabha&page={{page}}&per-page=50"
-MAX_PAGES = 15  # 543 / 50 = ~11, cap at 15 for safety
+# PRS ignores per-page param — always returns exactly 9 MPs per page
+# 543 MPs / 9 per page = 61 pages needed; use 65 for safety
+LIST_URL_TPL = f"{PRS_BASE}/mptrack?slug1=18th-lok-sabha&page={{page}}"
+MAX_PAGES = 65
 
 
 class PrsAttendanceSpider(scrapy.Spider):
