@@ -31,6 +31,15 @@ export default function AboutPage() {
           from mandatory government sources and present it in a clear,
           consistent format — because transparency is a fundamental right.
         </p>
+        <p className="text-text-secondary leading-relaxed mt-3 text-sm">
+          The Supreme Court of India has held that Article 19(1)(a) includes
+          the citizen&apos;s <strong className="text-text-primary">right to information</strong> —
+          making it the constitutional foundation of India&apos;s transparency
+          framework, including the RTI Act of 2005.
+          <span className="text-text-muted italic block mt-1 text-xs">
+            S.P. Gupta v. Union of India (1981) · State of U.P. v. Raj Narain (1975)
+          </span>
+        </p>
       </div>
 
       <section className="mb-10 space-y-4">
