@@ -175,9 +175,16 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <p className="font-mono text-accent text-xs uppercase tracking-widest mb-4">
-                Indian Politician Transparency Platform
-              </p>
+              {/* Article 19(1)(a) branding */}
+              <div className="border-l-2 border-accent bg-accent/5 px-5 py-4 mb-6 rounded-r-sm">
+                <p className="font-mono text-accent text-2xs uppercase tracking-widest mb-1">
+                  Article 19(1)(a) — Constitution of India
+                </p>
+                <p className="text-text-primary text-sm sm:text-base italic leading-relaxed">
+                  &ldquo;All citizens shall have the right to freedom of speech and expression.&rdquo;
+                </p>
+              </div>
+
               <h1 className="text-3xl sm:text-5xl font-bold text-text-primary mb-4 leading-tight">
                 Every rupee.
                 <br />
@@ -186,7 +193,7 @@ export default async function HomePage() {
                 Every vote.
               </h1>
               <p className="text-text-secondary text-sm sm:text-base mb-8 max-w-xl leading-relaxed">
-                Public record — sourced from mandatory ECI affidavits,
+                Your right to know — sourced from mandatory ECI affidavits,
                 parliamentary attendance data, and criminal court disclosures.
               </p>
 
