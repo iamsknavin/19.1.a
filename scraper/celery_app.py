@@ -22,7 +22,7 @@ load_dotenv()
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
 app = Celery(
-    "netawatch",
+    "nineteen1a",
     broker=REDIS_URL,
     backend=REDIS_URL,
     include=["tasks"],

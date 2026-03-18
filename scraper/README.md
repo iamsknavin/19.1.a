@@ -1,4 +1,4 @@
-# NETAwatch Scraper
+# 19.1.a Scraper
 
 Python scraper for collecting Indian politician data from public sources.
 
@@ -52,18 +52,18 @@ Load the pre-packaged party data:
 python seed_data/seed_parties.py
 ```
 
-## Phase 2 Features (stubs ready)
-
-- `spiders/eci_affidavit.py` — ECI PDF downloading + Tesseract OCR
-- `spiders/prs_attendance.py` — PRS India attendance data
-- `spiders/sansad_spider.py` — Official Sansad.in data
-- `celery_app.py` + `tasks.py` — Scheduled scraping via Celery + Redis
-
-## Data Sources
+## Available Spiders
 
 | Spider | Source | Status |
 |--------|--------|--------|
-| myneta | myneta.info | ✅ Phase 1 |
-| eci_affidavit | affidavit.eci.gov.in | Phase 2 |
-| prs_attendance | prsindia.org | Phase 2 |
-| sansad | sansad.in | Phase 2 |
+| myneta | myneta.info | ✅ Live |
+| prs_attendance | prsindia.org | ✅ Live |
+| news | Google News RSS | ✅ Live |
+| mca21 | MyNeta affidavits | ✅ Live |
+| mplad | MPLADS CSV data | ✅ Live |
+| ecourts | ecourts.gov.in | Ready |
+| gem | gem.gov.in | Ready (needs company data) |
+
+## Automation
+
+- `celery_app.py` + `tasks.py` — Scheduled scraping via Celery + Redis

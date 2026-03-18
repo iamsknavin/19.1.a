@@ -1,4 +1,4 @@
-"""Custom Scrapy middlewares for NETAwatch."""
+"""Custom Scrapy middlewares for 19.1.a."""
 import random
 from scrapy import signals
 
@@ -13,7 +13,7 @@ class RotateUserAgentMiddleware:
     def from_crawler(cls, crawler):
         user_agents = crawler.settings.getlist(
             "USER_AGENT_LIST",
-            ["Mozilla/5.0 (compatible; NETAwatchBot/1.0)"],
+            ["Mozilla/5.0 (compatible; 19-1-a-Bot/1.0)"],
         )
         return cls(user_agents)
 

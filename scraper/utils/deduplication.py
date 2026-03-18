@@ -1,5 +1,5 @@
 """
-Deduplication utilities for NETAwatch scraper.
+Deduplication utilities for 19.1.a scraper.
 Checks Supabase before inserting to avoid duplicates.
 """
 import os

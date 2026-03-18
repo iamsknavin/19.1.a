@@ -11,11 +11,12 @@ export function Header() {
             href="/"
             className="flex items-center gap-2 shrink-0 group"
           >
-            <span className="font-mono text-accent font-semibold text-lg tracking-tight group-hover:text-accent-dim transition-colors">
-              NETA
-            </span>
-            <span className="font-mono text-text-secondary text-lg tracking-tight group-hover:text-text-primary transition-colors">
-              watch
+            <span className="font-mono text-lg tracking-tight group-hover:opacity-80 transition-opacity">
+              <span className="text-accent font-bold">19</span>
+              <span className="text-text-muted">.</span>
+              <span className="text-accent font-bold">1</span>
+              <span className="text-text-muted">.</span>
+              <span className="text-accent font-bold">a</span>
             </span>
           </Link>
 
@@ -57,7 +58,7 @@ export function Header() {
               API
             </Link>
             <a
-              href="https://github.com/iamsknavin/netawatch"
+              href="https://github.com/iamsknavin/19.1.a"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-accent transition-colors font-mono text-2xs border border-border px-2 py-1 rounded-sm"

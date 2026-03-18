@@ -1,6 +1,6 @@
-# Instructions for TARS — NETAwatch Operations Guide
+# Instructions for TARS — 19.1.a Operations Guide
 
-> **TARS, this is your operational manual for the NETAwatch scraper system.**
+> **TARS, this is your operational manual for the 19.1.a scraper system.**
 > You are running on an Ubuntu Linux VPS. Your job is to keep the scraper
 > pipeline running, the data fresh, and the Celery scheduler healthy.
 
@@ -8,7 +8,7 @@
 
 ## 1. Quick Orientation
 
-NETAwatch is an Indian politician transparency platform. The **frontend**
+19.1.a is an Indian politician transparency platform. The **frontend**
 (Next.js) is deployed separately. Your VPS handles the **scraper system only**:
 Python + Scrapy spiders that collect data and write it to a remote Supabase
 PostgreSQL database.
@@ -23,7 +23,7 @@ what you need to operate the scraper on this VPS.
 ## 2. Repository Structure (Scraper-Relevant)
 
 ```
-netawatch/
+19.1.a/
 ├── PROJECT.md                  ← Full project documentation (READ THIS)
 ├── scraper/
 │   ├── scrapy.cfg              ← Scrapy project config
@@ -68,9 +68,9 @@ sudo systemctl enable docker && sudo systemctl start docker
 
 ```bash
 cd /opt
-sudo git clone https://github.com/iamsknavin/netawatch.git
-sudo chown -R $USER:$USER /opt/netawatch
-cd /opt/netawatch/scraper
+sudo git clone https://github.com/iamsknavin/19.1.a.git
+sudo chown -R $USER:$USER /opt/19-1-a
+cd /opt/19-1-a/scraper
 ```
 
 ### 3.3 Python Virtual Environment
@@ -100,7 +100,7 @@ docker run -d --name redis --restart unless-stopped -p 6379:6379 redis:alpine
 
 ### 3.5 Environment File
 
-Create `/opt/netawatch/scraper/.env`:
+Create `/opt/19-1-a/scraper/.env`:
 
 ```env
 # === REQUIRED ===
@@ -145,7 +145,7 @@ has read access.
 ### Connection Test
 
 ```bash
-cd /opt/netawatch/scraper
+cd /opt/19-1-a/scraper
 source venv/bin/activate
 python3 -c "
 from dotenv import load_dotenv
@@ -223,7 +223,7 @@ over time. Consider dedup queries periodically.
 Always run from the scraper directory with the venv activated:
 
 ```bash
-cd /opt/netawatch/scraper
+cd /opt/19-1-a/scraper
 source venv/bin/activate
 ```
 
@@ -289,7 +289,7 @@ Celery handles automated scheduling. It needs Redis running.
 ### 7.1 Start Services
 
 ```bash
-cd /opt/netawatch/scraper
+cd /opt/19-1-a/scraper
 source venv/bin/activate
 
 # Terminal 1: Celery worker (executes tasks)
@@ -303,18 +303,18 @@ celery -A celery_app beat --loglevel=info
 
 Create systemd units so Celery survives reboots:
 
-**/etc/systemd/system/netawatch-worker.service:**
+**/etc/systemd/system/nineteen1a-worker.service:**
 ```ini
 [Unit]
-Description=NETAwatch Celery Worker
+Description=19.1.a Celery Worker
 After=network.target redis.service
 
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/opt/netawatch/scraper
-Environment="PATH=/opt/netawatch/scraper/venv/bin"
-ExecStart=/opt/netawatch/scraper/venv/bin/celery -A celery_app worker --loglevel=info
+WorkingDirectory=/opt/19-1-a/scraper
+Environment="PATH=/opt/19-1-a/scraper/venv/bin"
+ExecStart=/opt/19-1-a/scraper/venv/bin/celery -A celery_app worker --loglevel=info
 Restart=always
 RestartSec=10
 
@@ -322,18 +322,18 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-**/etc/systemd/system/netawatch-beat.service:**
+**/etc/systemd/system/nineteen1a-beat.service:**
 ```ini
 [Unit]
-Description=NETAwatch Celery Beat Scheduler
+Description=19.1.a Celery Beat Scheduler
 After=network.target redis.service
 
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/opt/netawatch/scraper
-Environment="PATH=/opt/netawatch/scraper/venv/bin"
-ExecStart=/opt/netawatch/scraper/venv/bin/celery -A celery_app beat --loglevel=info
+WorkingDirectory=/opt/19-1-a/scraper
+Environment="PATH=/opt/19-1-a/scraper/venv/bin"
+ExecStart=/opt/19-1-a/scraper/venv/bin/celery -A celery_app beat --loglevel=info
 Restart=always
 RestartSec=10
 
@@ -343,16 +343,16 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable netawatch-worker netawatch-beat
-sudo systemctl start netawatch-worker netawatch-beat
+sudo systemctl enable nineteen1a-worker nineteen1a-beat
+sudo systemctl start nineteen1a-worker nineteen1a-beat
 
 # Check status
-sudo systemctl status netawatch-worker
-sudo systemctl status netawatch-beat
+sudo systemctl status nineteen1a-worker
+sudo systemctl status nineteen1a-beat
 
 # View logs
-sudo journalctl -u netawatch-worker -f
-sudo journalctl -u netawatch-beat -f
+sudo journalctl -u nineteen1a-worker -f
+sudo journalctl -u nineteen1a-beat -f
 ```
 
 ### 7.3 Beat Schedule (All Times IST — Asia/Kolkata)
@@ -385,7 +385,7 @@ def run_myneta_scraper(self, house: str = "both"):
 **Option B:** Run a weekly cron job that deletes cases before the Celery task:
 ```bash
 # crontab -e
-55 1 * * 0 cd /opt/netawatch/scraper && source venv/bin/activate && python3 -c "
+55 1 * * 0 cd /opt/19-1-a/scraper && source venv/bin/activate && python3 -c "
 from dotenv import load_dotenv; load_dotenv(); import os
 from supabase import create_client
 sb = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_SERVICE_ROLE_KEY'])
@@ -467,7 +467,7 @@ docker run -d --name redis --restart unless-stopped -p 6379:6379 redis:alpine
 celery -A celery_app purge
 
 # Restart worker
-sudo systemctl restart netawatch-worker
+sudo systemctl restart nineteen1a-worker
 ```
 
 ### Spider blocked / rate-limited
@@ -482,7 +482,7 @@ The autothrottle will back off automatically. If you get 429s or 503s:
 scrapy crawl myneta --loglevel=DEBUG 2>&1 | tee /tmp/myneta.log
 
 # Check last Celery task output
-sudo journalctl -u netawatch-worker --since "1 hour ago" | tail -100
+sudo journalctl -u nineteen1a-worker --since "1 hour ago" | tail -100
 ```
 
 ---
@@ -490,7 +490,7 @@ sudo journalctl -u netawatch-worker --since "1 hour ago" | tail -100
 ## 10. Maintenance Tasks
 
 ### Weekly
-- Check `sudo journalctl -u netawatch-worker -f` for errors
+- Check `sudo journalctl -u nineteen1a-worker -f` for errors
 - Verify data counts with SQL queries (section 8)
 - Check for duplicate controversies and clean if needed
 
@@ -503,7 +503,7 @@ sudo journalctl -u netawatch-worker --since "1 hour ago" | tail -100
 ### After Code Updates
 - Always `git pull` then restart Celery:
   ```bash
-  sudo systemctl restart netawatch-worker netawatch-beat
+  sudo systemctl restart nineteen1a-worker nineteen1a-beat
   ```
 - If spider logic changed (especially `myneta_spider.py`), consider a full re-scrape
 - Update `PROJECT.md` changelog with what changed
@@ -529,7 +529,7 @@ sudo journalctl -u netawatch-worker --since "1 hour ago" | tail -100
 ## 12. Quick Start Checklist
 
 ```
-[ ] 1. Clone repo to /opt/netawatch
+[ ] 1. Clone repo to /opt/19-1-a
 [ ] 2. Create Python venv and install dependencies
 [ ] 3. Start Redis (Docker)
 [ ] 4. Create scraper/.env with Supabase service role key

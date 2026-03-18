@@ -1,5 +1,5 @@
 """
-Supabase write pipeline for NETAwatch scraper.
+Supabase write pipeline for 19.1.a scraper.
 Handles upserts for politicians, assets, and criminal cases.
 Respects DRY_RUN mode — logs but does not write.
 """

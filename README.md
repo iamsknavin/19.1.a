@@ -1,11 +1,14 @@
-# NETAwatch
+# 19.1.a
 
-**Indian politician transparency platform.** Every rupee. Every case. Every vote. Public record.
+**Indian politician transparency platform.** Your right to know. Every rupee. Every case. Every vote.
+
+> *"All citizens shall have the right to freedom of speech and expression."*
+> — Article 19(1)(a), Constitution of India
 
 Track Lok Sabha MPs, State MLAs, wealth declarations, criminal cases, controversies, and parliamentary performance — all sourced from mandatory public disclosures.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Open Source](https://img.shields.io/badge/open-source-blue.svg)](https://github.com/iamsknavin/netawatch)
+[![Open Source](https://img.shields.io/badge/open-source-blue.svg)](https://github.com/iamsknavin/19.1.a)
 
 ---
 
@@ -57,8 +60,8 @@ Track Lok Sabha MPs, State MLAs, wealth declarations, criminal cases, controvers
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/iamsknavin/netawatch.git
-cd netawatch
+git clone https://github.com/iamsknavin/19.1.a.git
+cd 19.1.a
 npm install
 ```
 
@@ -167,7 +170,7 @@ MEILISEARCH_ADMIN_KEY=           # Admin key (server only)
 
 ## Disclaimer
 
-All data on NETAwatch is sourced from mandatory public disclosures made by politicians themselves. NETAwatch does not make allegations — we present public records. NETAwatch is not affiliated with the Government of India or the Election Commission of India.
+All data on 19.1.a is sourced from mandatory public disclosures made by politicians themselves. 19.1.a does not make allegations — we present public records. 19.1.a is not affiliated with the Government of India or the Election Commission of India.
 
 ---
 

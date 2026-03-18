@@ -1,5 +1,5 @@
 """
-MyNeta Spider for NETAwatch.
+MyNeta Spider for 19.1.a.
 
 Scrapes myneta.info for Lok Sabha, Rajya Sabha, and State Assembly (Vidhan Sabha) data.
 Extracts: name, party, constituency, state, house, assets, liabilities,

@@ -56,7 +56,7 @@ export default async function DataSourcesPage() {
           Data Sources
         </h1>
         <p className="text-text-secondary text-sm leading-relaxed">
-          Every data point on NETAwatch is sourced from mandatory public
+          Every data point on 19.1.a is sourced from mandatory public
           disclosures. Here&apos;s what we collect, from where, and when it was
           last updated.
         </p>

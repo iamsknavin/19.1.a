@@ -1,5 +1,5 @@
 """
-Scrapy settings for NETAwatch scraper.
+Scrapy settings for 19.1.a scraper.
 Polite scraping: 1.5s delay, auto-throttle, robots.txt respected.
 """
 import os
@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_NAME = "netawatch_scraper"
+BOT_NAME = "nineteen1a_scraper"
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 

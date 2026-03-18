@@ -2,23 +2,34 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DATA_SOURCES } from "@/lib/config";
 
-export const metadata: Metadata = { title: "About NETAwatch" };
+export const metadata: Metadata = { title: "About 19.1.a" };
 
 export default function AboutPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Article 19(1)(a) quote block */}
+      <div className="border-l-2 border-accent bg-accent/5 px-6 py-5 mb-10 rounded-r-sm">
+        <p className="font-mono text-accent text-xs uppercase tracking-widest mb-2">
+          Article 19(1)(a) — Constitution of India
+        </p>
+        <p className="text-text-primary text-lg italic leading-relaxed">
+          &ldquo;All citizens shall have the right to freedom of speech and expression.&rdquo;
+        </p>
+      </div>
+
       <div className="mb-10">
         <p className="font-mono text-accent text-xs uppercase tracking-widest mb-3">
           About
         </p>
         <h1 className="text-3xl font-bold text-text-primary mb-4">
-          What is NETAwatch?
+          What is 19.1.a?
         </h1>
         <p className="text-text-secondary leading-relaxed">
-          NETAwatch is an open-source platform that makes Indian politician
-          public disclosures accessible, searchable, and understandable. We
-          aggregate data from mandatory government sources and present it in
-          a clear, consistent format.
+          19.1.a is an open-source platform that makes Indian politician
+          public disclosures accessible, searchable, and understandable. Named
+          after the constitutional right to free expression, we aggregate data
+          from mandatory government sources and present it in a clear,
+          consistent format — because transparency is a fundamental right.
         </p>
       </div>
 
@@ -34,7 +45,7 @@ export default function AboutPage() {
           impossible to search or compare.
         </p>
         <p className="text-text-secondary leading-relaxed text-sm">
-          NETAwatch solves this by scraping, parsing, and presenting the same
+          19.1.a solves this by scraping, parsing, and presenting the same
           public data in a fast, searchable interface.
         </p>
       </section>
@@ -132,13 +143,13 @@ export default function AboutPage() {
           Disclaimer
         </h2>
         <p className="text-sm text-text-secondary leading-relaxed">
-          All data on NETAwatch is sourced from mandatory public disclosures
-          made by politicians themselves. NETAwatch does not make allegations —
+          All data on 19.1.a is sourced from mandatory public disclosures
+          made by politicians themselves. 19.1.a does not make allegations —
           we present public records. For corrections or disputes, please file
           an issue on our GitHub repository.
         </p>
         <p className="text-sm text-text-secondary leading-relaxed mt-3">
-          NETAwatch is not affiliated with the Government of India, the
+          19.1.a is not affiliated with the Government of India, the
           Election Commission of India, or any political party.
         </p>
       </section>
@@ -148,11 +159,11 @@ export default function AboutPage() {
           Open Source
         </h2>
         <p className="text-sm text-text-secondary mb-4">
-          NETAwatch is MIT licensed and open source. Contributions welcome.
+          19.1.a is MIT licensed and open source. Contributions welcome.
         </p>
         <div className="flex gap-3">
           <a
-            href="https://github.com/iamsknavin/netawatch"
+            href="https://github.com/iamsknavin/19.1.a"
             target="_blank"
             rel="noopener noreferrer"
             className="font-mono text-sm border border-accent text-accent px-4 py-2 hover:bg-accent hover:text-bg transition-colors"

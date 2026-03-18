@@ -7,12 +7,23 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm">
           {/* Brand */}
           <div>
-            <p className="font-mono text-accent font-semibold mb-2">NETAwatch</p>
+            <p className="font-mono text-accent font-semibold mb-1">
+              <span className="font-bold">19</span>
+              <span className="text-text-muted">.</span>
+              <span className="font-bold">1</span>
+              <span className="text-text-muted">.</span>
+              <span className="font-bold">a</span>
+            </p>
             <p className="text-text-secondary text-xs leading-relaxed">
-              Every rupee. Every case. Every vote. Public record.
+              Your right to know. Every rupee. Every case. Every vote.
+            </p>
+            <p className="text-text-muted text-2xs mt-2 italic leading-relaxed">
+              &ldquo;All citizens shall have the right to freedom of speech and expression.&rdquo;
+              <br />
+              <span className="not-italic">— Article 19(1)(a), Constitution of India</span>
             </p>
             <p className="text-text-muted text-2xs mt-3">
-              All data sourced from mandatory public disclosures. NETAwatch does not make
+              All data sourced from mandatory public disclosures. 19.1.a does not make
               allegations — we present public records.
             </p>
           </div>

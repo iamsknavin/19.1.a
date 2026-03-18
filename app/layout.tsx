@@ -20,11 +20,11 @@ const ibmPlexSans = IBM_Plex_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "NETAwatch — Indian Politician Transparency Platform",
-    template: "%s | NETAwatch",
+    default: "19.1.a — Indian Politician Transparency Platform",
+    template: "%s | 19.1.a",
   },
   description:
-    "Track Indian politician wealth declarations, criminal cases, and parliamentary performance. All data from mandatory public disclosures.",
+    "Your right to know. Track Indian politician wealth declarations, criminal cases, and parliamentary performance. All data from mandatory public disclosures.",
   keywords: [
     "Indian politicians",
     "criminal cases",
@@ -33,12 +33,13 @@ export const metadata: Metadata = {
     "Rajya Sabha",
     "transparency",
     "accountability",
-    "NETAwatch",
+    "19.1.a",
+    "Article 19(1)(a)",
   ],
   openGraph: {
     type: "website",
     locale: "en_IN",
-    siteName: "NETAwatch",
+    siteName: "19.1.a",
   },
   robots: {
     index: true,

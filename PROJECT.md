@@ -1,4 +1,4 @@
-# NETAwatch — Project Documentation
+# 19.1.a — Project Documentation
 
 > **Indian Politician Transparency Platform**
 > Every rupee. Every case. Every vote. Public record.
@@ -23,7 +23,7 @@
 
 ## Overview
 
-NETAwatch aggregates publicly available data about Indian elected representatives — criminal cases, asset declarations, parliamentary attendance, corruption signals, MPLAD fund usage, and news controversies — into a single, searchable platform. All data comes from mandatory public disclosures and government portals.
+19.1.a aggregates publicly available data about Indian elected representatives — criminal cases, asset declarations, parliamentary attendance, corruption signals, MPLAD fund usage, and news controversies — into a single, searchable platform. All data comes from mandatory public disclosures and government portals.
 
 **Live Stats (as of 2026-03-12):**
 
@@ -128,7 +128,7 @@ NETAwatch aggregates publicly available data about Indian elected representative
 
 ### Philosophy
 
-NETAwatch uses a **dark, data-forward, monospace-accented** design. The aesthetic is intentionally stark and utilitarian — modeled on investigative journalism tools and financial terminals. Data is presented densely with no decorative flourishes. The accent gold evokes a "watchdog" / "spotlight" metaphor.
+19.1.a uses a **dark, data-forward, monospace-accented** design. The aesthetic is intentionally stark and utilitarian — modeled on investigative journalism tools and financial terminals. Data is presented densely with no decorative flourishes. The accent gold evokes a "watchdog" / "spotlight" metaphor.
 
 ### Color Palette
 
@@ -310,7 +310,7 @@ MPLAD/MLALAD fund allocation, release, and utilization with projects (JSONB).
 ### Configuration (`scraper/settings.py`)
 
 ```
-BOT_NAME:                netawatch_scraper
+BOT_NAME:                nineteen1a_scraper
 ROBOTSTXT_OBEY:          True
 DOWNLOAD_DELAY:          1.5s (randomized 0.5x–1.5x)
 CONCURRENT_REQUESTS:     1
@@ -637,4 +637,4 @@ docker run -d -p 7700:7700 \
 
 ---
 
-*This file is maintained as the single source of truth for the NETAwatch project. Update it after every significant change.*
+*This file is maintained as the single source of truth for the 19.1.a project. Update it after every significant change.*

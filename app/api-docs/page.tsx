@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "API Documentation — NETAwatch",
+  title: "API Documentation — 19.1.a",
   description: "Public REST API for accessing Indian politician transparency data.",
 };
 
@@ -56,7 +56,7 @@ export default function ApiDocsPage() {
       </nav>
 
       <h1 className="font-mono text-xl text-text-primary mb-2">
-        NETAwatch Public API
+        19.1.a Public API
       </h1>
       <p className="text-sm text-text-secondary mb-8 leading-relaxed max-w-2xl">
         Free, open access to Indian politician transparency data. All endpoints
@@ -66,7 +66,7 @@ export default function ApiDocsPage() {
       <div className="bg-surface border border-border rounded-sm p-4 mb-8">
         <p className="font-mono text-xs text-text-secondary mb-2">Base URL</p>
         <code className="font-mono text-sm text-accent">
-          https://netawatch.vercel.app/api/v1
+          https://19-1-a.vercel.app/api/v1
         </code>
       </div>
 
