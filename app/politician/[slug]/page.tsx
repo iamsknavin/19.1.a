@@ -13,7 +13,6 @@ import { PartyBadge } from "@/components/politician/PartyBadge";
 import { CasesBadge } from "@/components/politician/CasesBadge";
 import { WealthBar } from "@/components/politician/WealthBar";
 import { DataSourceTag } from "@/components/ui/DataSourceTag";
-import { PhaseStub } from "@/components/ui/PhaseStub";
 import type { PoliticianProfile } from "@/types";
 
 export const revalidate = 86400;
@@ -86,6 +85,7 @@ export default async function PoliticianProfilePage({
   const signals = p.corruption_signals ?? [];
   const controversies = p.controversies ?? [];
   const fundUsage = p.fund_usage ?? [];
+  const companyInterests = p.company_interests ?? [];
   const houseLabel = HOUSE_LABELS[p.house ?? ""] ?? p.house;
 
   return (
@@ -239,6 +239,7 @@ export default async function PoliticianProfilePage({
         heinousCases={heinousCases}
         controversies={controversies}
         fundUsage={fundUsage}
+        companyInterests={companyInterests}
       />
     </div>
   );
@@ -254,6 +255,7 @@ function TabLayout({
   heinousCases,
   controversies,
   fundUsage,
+  companyInterests,
 }: {
   assets: PoliticianProfile["assets_declarations"];
   cases: PoliticianProfile["criminal_cases"];
@@ -263,6 +265,7 @@ function TabLayout({
   heinousCases: PoliticianProfile["criminal_cases"];
   controversies: PoliticianProfile["controversies"];
   fundUsage: PoliticianProfile["fund_usage"];
+  companyInterests: PoliticianProfile["company_interests"];
 }) {
   return (
     <div>
@@ -273,7 +276,7 @@ function TabLayout({
           { id: "cases", label: `Cases (${cases.length})` },
           { id: "elections", label: `Elections (${terms.length})` },
           { id: "performance", label: "Parliament" },
-          { id: "companies", label: "Companies" },
+          { id: "companies", label: `Companies (${companyInterests.length})` },
           { id: "controversies", label: "Controversies" },
         ].map((tab) => (
           <a
@@ -678,13 +681,127 @@ function TabLayout({
       {/* Tab 5: Companies */}
       <section id="companies" className="mb-16 scroll-mt-20">
         <h2 className="font-mono text-text-secondary text-xs uppercase tracking-widest mb-6">
-          Company Interests & Government Tenders
+          Company Interests & Business Declarations
         </h2>
-        <PhaseStub
-          phase={2}
-          feature="Company Interests & Tender Tracking"
-          description="Cross-reference this MP's declared company directorships and shareholdings with MCA21 data, and flag potential conflicts with GeM/CPPP government tenders."
-        />
+
+        {companyInterests.length === 0 ? (
+          <div className="bg-safe/5 border border-safe/30 p-6 rounded-sm text-center">
+            <p className="font-mono text-safe text-sm">
+              ✓ No business interests or government contracts declared
+            </p>
+            <DataSourceTag source="myneta" className="mt-2" />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Government Contracts */}
+            {(() => {
+              const contracts = companyInterests.filter((c) => c.company_type === "government_contract");
+              if (contracts.length === 0) return null;
+              return (
+                <div>
+                  <h3 className="font-mono text-xs text-warning uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-warning" />
+                    Government Contracts ({contracts.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {contracts.map((c) => (
+                      <div key={c.id} className="bg-surface border border-warning/30 rounded-sm p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm text-text-primary font-medium">
+                              {c.company_name}
+                            </p>
+                            <p className="text-2xs font-mono text-text-muted mt-1">
+                              {c.role}
+                            </p>
+                          </div>
+                          <span className="font-mono text-2xs bg-warning/20 text-warning border border-warning/50 px-1.5 py-0.5 rounded-sm shrink-0">
+                            GOVT CONTRACT
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Business / Profession Declarations */}
+            {(() => {
+              const professions = companyInterests.filter((c) => c.company_type === "profession_declaration");
+              if (professions.length === 0) return null;
+              return (
+                <div>
+                  <h3 className="font-mono text-xs text-text-secondary uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-accent" />
+                    Business Interests ({professions.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {professions.map((c) => (
+                      <div key={c.id} className="bg-surface border border-border rounded-sm p-4">
+                        <p className="text-sm text-text-primary">
+                          {c.company_name}
+                        </p>
+                        <p className="text-2xs font-mono text-text-muted mt-1">
+                          Self-declared in election affidavit
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Other company interests (directorships, shareholdings) */}
+            {(() => {
+              const others = companyInterests.filter(
+                (c) => c.company_type !== "government_contract" && c.company_type !== "profession_declaration"
+              );
+              if (others.length === 0) return null;
+              return (
+                <div>
+                  <h3 className="font-mono text-xs text-text-secondary uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 rounded-full bg-text-muted" />
+                    Directorships & Shareholdings ({others.length})
+                  </h3>
+                  <div className="bg-surface border border-border rounded-sm overflow-hidden">
+                    <table className="data-table w-full">
+                      <thead>
+                        <tr>
+                          <th className="text-left text-2xs font-mono text-text-muted uppercase">Company</th>
+                          <th className="text-left text-2xs font-mono text-text-muted uppercase">Role</th>
+                          {others.some((c) => c.share_percentage) && (
+                            <th className="text-right text-2xs font-mono text-text-muted uppercase">Share %</th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {others.map((c) => (
+                          <tr key={c.id}>
+                            <td className="text-xs text-text-primary">
+                              {c.company_name}
+                              {c.cin && (
+                                <span className="text-2xs text-text-muted ml-2">CIN: {c.cin}</span>
+                              )}
+                            </td>
+                            <td className="text-xs text-text-secondary font-mono">{c.role ?? "—"}</td>
+                            {others.some((ci) => ci.share_percentage) && (
+                              <td className="text-right text-xs font-mono text-accent">
+                                {c.share_percentage != null ? `${c.share_percentage}%` : "—"}
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+
+            <DataSourceTag source="myneta" className="mt-2" />
+          </div>
+        )}
       </section>
 
       {/* Tab 6: Controversies */}

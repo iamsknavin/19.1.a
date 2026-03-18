@@ -47,6 +47,8 @@ export interface PlatformStats {
   total_rajya_sabha: number;
   total_criminal_cases: number;
   total_declared_wealth: number;
+  total_attendance_records: number;
+  total_company_interests: number;
   last_updated: string | null;
 }
 

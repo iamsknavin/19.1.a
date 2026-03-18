@@ -15,7 +15,7 @@ export const revalidate = 3600; // revalidate every hour
 async function getPlatformStats(): Promise<PlatformStats & { total_elected: number }> {
   const supabase = await createServerClient();
 
-  const [politiciansResult, electedResult, casesResult, assetsResult] = await Promise.all([
+  const [politiciansResult, electedResult, casesResult, assetsResult, attendanceResult, companyResult] = await Promise.all([
     supabase
       .from("politicians")
       .select("id, house, updated_at", { count: "exact" })
@@ -26,6 +26,8 @@ async function getPlatformStats(): Promise<PlatformStats & { total_elected: numb
       .eq("election_status", "won"),
     supabase.from("criminal_cases").select("id", { count: "exact" }),
     supabase.from("assets_declarations").select("net_worth"),
+    supabase.from("attendance_records").select("id", { count: "exact" }),
+    supabase.from("company_interests").select("id", { count: "exact" }),
   ]);
 
   const politicians = (politiciansResult.data ?? []) as { id: string; house: string; updated_at: string }[];
@@ -50,6 +52,8 @@ async function getPlatformStats(): Promise<PlatformStats & { total_elected: numb
     total_rajya_sabha: politicians.filter((p) => p.house === "rajya_sabha").length,
     total_criminal_cases: casesResult.count ?? 0,
     total_declared_wealth: totalDeclaredWealth,
+    total_attendance_records: attendanceResult.count ?? 0,
+    total_company_interests: companyResult.count ?? 0,
     last_updated: lastUpdated,
   };
 }
@@ -226,11 +230,11 @@ export default async function HomePage() {
       {/* Stats bar */}
       <section className="border-b border-border bg-surface-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatCard
               label={stats.total_elected > 0 ? "Elected MPs" : "Candidates Tracked"}
               value={stats.total_elected > 0 ? stats.total_elected.toLocaleString("en-IN") : stats.total_politicians.toLocaleString("en-IN")}
-              subValue={stats.total_elected > 0 ? `of ${stats.total_politicians} total candidates` : `LS: ${stats.total_lok_sabha} · RS: ${stats.total_rajya_sabha}`}
+              subValue={stats.total_elected > 0 ? `of ${stats.total_politicians} total` : `LS: ${stats.total_lok_sabha} · RS: ${stats.total_rajya_sabha}`}
               accent
             />
             <StatCard
@@ -244,6 +248,16 @@ export default async function HomePage() {
               value={formatIndianCurrency(stats.total_declared_wealth)}
               subValue="Combined net worth"
               accent
+            />
+            <StatCard
+              label="Parliament Tracked"
+              value={stats.total_attendance_records.toLocaleString("en-IN")}
+              subValue="Attendance & performance"
+            />
+            <StatCard
+              label="Business Interests"
+              value={stats.total_company_interests.toLocaleString("en-IN")}
+              subValue="Contracts & directorships"
             />
             <StatCard
               label="Last Updated"

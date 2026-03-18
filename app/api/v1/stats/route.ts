@@ -10,11 +10,15 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createServerClient();
 
-  const [politicians, cases, signals, controversies] = await Promise.all([
+  const [politicians, cases, signals, controversies, attendance, assets, fundUsage, companyInterests] = await Promise.all([
     supabase.from("politicians").select("id, house", { count: "exact" }),
     supabase.from("criminal_cases").select("id", { count: "exact" }),
     supabase.from("corruption_signals").select("id", { count: "exact" }),
     supabase.from("controversies").select("id", { count: "exact" }),
+    supabase.from("attendance_records").select("id", { count: "exact" }),
+    supabase.from("assets_declarations").select("id", { count: "exact" }),
+    supabase.from("fund_usage").select("id", { count: "exact" }),
+    supabase.from("company_interests").select("id", { count: "exact" }),
   ]);
 
   const politicianData = (politicians.data ?? []) as unknown as { id: string; house: string | null }[];
@@ -30,6 +34,10 @@ export async function GET(request: NextRequest) {
     total_criminal_cases: cases.count ?? 0,
     total_corruption_signals: signals.count ?? 0,
     total_controversies: controversies.count ?? 0,
+    total_attendance_records: attendance.count ?? 0,
+    total_assets_declarations: assets.count ?? 0,
+    total_fund_usage: fundUsage.count ?? 0,
+    total_company_interests: companyInterests.count ?? 0,
   };
 
   return jsonResponse(stats, { page: 1, per_page: 1 });
