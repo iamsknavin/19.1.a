@@ -75,7 +75,7 @@ export default async function PartiesPage() {
   const partiesWithMPs = parties.filter((p) => p.mp_count > 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-up">
       <div className="mb-8">
         <p className="font-mono text-accent text-xs uppercase tracking-widest mb-2">
           Political Parties
@@ -108,7 +108,7 @@ export default async function PartiesPage() {
               <Link
                 key={party.id}
                 href={`/party/${(party.abbreviation ?? party.name).toLowerCase()}`}
-                className="bg-surface border border-border hover:border-accent/40 transition-colors p-4 rounded-sm group"
+                className="bg-surface border border-border hover:border-accent/40 transition-all duration-200 p-4 rounded-sm group hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/5"
               >
                 <div className="flex items-center justify-between mb-3">
                   <PartyBadge party={party} />

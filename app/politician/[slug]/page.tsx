@@ -111,7 +111,6 @@ export default async function PoliticianProfilePage({
                 width={96}
                 height={96}
                 className="w-24 h-24 object-cover rounded-sm"
-                unoptimized
               />
             ) : (
               <div className="w-24 h-24 bg-surface-2 rounded-sm flex items-center justify-center border border-border">

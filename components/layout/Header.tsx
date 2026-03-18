@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
+import { MobileNav } from "./MobileNav";
 
 export function Header() {
   return (
@@ -25,7 +26,7 @@ export function Header() {
             <SearchBar compact />
           </div>
 
-          {/* Nav */}
+          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm text-text-secondary">
             <Link
               href="/politicians"
@@ -66,6 +67,9 @@ export function Header() {
               GitHub ↗
             </a>
           </nav>
+
+          {/* Mobile Nav */}
+          <MobileNav />
         </div>
       </div>
     </header>

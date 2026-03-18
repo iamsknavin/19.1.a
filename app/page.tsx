@@ -1,14 +1,26 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { createServerClient } from "@/lib/supabase";
 import { formatIndianCurrency, formatRelativeTime } from "@/lib/formatters";
 import { HOUSE_LABELS } from "@/lib/utils";
 import { StatCard } from "@/components/ui/StatCard";
 import { SearchBar } from "@/components/SearchBar";
-import { IndiaMap } from "@/components/IndiaMap";
 import { PartyBadge } from "@/components/politician/PartyBadge";
-import { ParliamentHemicycle } from "@/components/ParliamentHemicycle";
 import { computeHemicycleLayout } from "@/lib/hemicycle-layout";
 import type { PlatformStats } from "@/types";
+
+const IndiaMap = dynamic(() => import("@/components/IndiaMap").then(m => m.IndiaMap), {
+  ssr: false,
+  loading: () => <div className="h-80 bg-surface-2 animate-pulse rounded-sm" />,
+});
+
+const ParliamentHemicycle = dynamic(
+  () => import("@/components/ParliamentHemicycle").then(m => m.ParliamentHemicycle),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 bg-surface-2 animate-pulse rounded-sm" />,
+  }
+);
 
 export const revalidate = 3600; // revalidate every hour
 
@@ -169,7 +181,7 @@ export default async function HomePage() {
     computeHemicycleLayout(partySeats);
 
   return (
-    <div>
+    <div className="animate-fade-up">
       {/* Hero */}
       <section className="border-b border-border bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
@@ -295,7 +307,7 @@ export default async function HomePage() {
                     <Link
                       key={party.id}
                       href={`/party/${(party.abbreviation ?? party.name).toLowerCase()}`}
-                      className="bg-surface border border-border hover:border-accent/40 transition-colors p-4 rounded-sm group"
+                      className="bg-surface border border-border hover:border-accent/40 transition-all duration-200 p-4 rounded-sm group hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/5"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <PartyBadge party={party} />

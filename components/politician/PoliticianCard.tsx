@@ -17,7 +17,7 @@ export function PoliticianCard({ politician: p }: PoliticianCardProps) {
   return (
     <Link
       href={`/politician/${p.slug}`}
-      className="block bg-surface border border-border hover:border-accent/40 transition-colors p-4 rounded-sm group"
+      className="block bg-surface border border-border hover:border-accent/40 transition-all duration-200 p-4 rounded-sm group hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/5"
     >
       <div className="flex gap-3">
         {/* Photo */}
@@ -29,7 +29,6 @@ export function PoliticianCard({ politician: p }: PoliticianCardProps) {
               width={56}
               height={56}
               className="w-14 h-14 object-cover rounded-sm grayscale group-hover:grayscale-0 transition-all"
-              unoptimized
             />
           ) : (
             <div className="w-14 h-14 bg-surface-2 rounded-sm flex items-center justify-center border border-border">
