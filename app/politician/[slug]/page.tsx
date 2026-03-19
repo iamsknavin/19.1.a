@@ -460,7 +460,9 @@ function TabLayout({
             })()}
 
             {cases.map((c) => {
-              const sections = (c.ipc_sections ?? []).filter((s) => !/^(19|20)\d{2}$/.test(s));
+              const sections = (c.ipc_sections ?? [])
+                .map((s) => s.replace(/^0+/, "") || s) // normalize leading zeros: "04" → "4"
+                .filter((s) => !/^(1[89]|20)\d{2}$/.test(s)); // filter years (1800s–2099)
               const crimeNames = getCrimeNames(sections);
               const heinousCrimes = c.is_heinous ? getHeinousCrimeTypes(sections) : [];
               const status = getStatusLabel(c.current_status);

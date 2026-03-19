@@ -110,7 +110,7 @@ const IPC_LABELS: Record<string, string> = {
  * Get a human-readable label for an IPC section number.
  */
 export function getIPCLabel(section: string): string {
-  const normalized = section.toLowerCase().trim();
+  const normalized = section.toLowerCase().trim().replace(/^0+/, "");
   return IPC_LABELS[normalized] ?? `IPC ${section}`;
 }
 
@@ -123,7 +123,10 @@ export function getCrimeNames(ipcSections: string[]): string[] {
   const names: string[] = [];
 
   for (const section of ipcSections) {
-    const label = getIPCLabel(section);
+    const normalized = section.toLowerCase().trim().replace(/^0+/, "");
+    // Only include sections that have known labels (skip unmapped generic sections)
+    if (!(normalized in IPC_LABELS)) continue;
+    const label = IPC_LABELS[normalized];
     if (!seen.has(label)) {
       seen.add(label);
       names.push(label);
@@ -163,7 +166,7 @@ export function getHeinousCrimeTypes(ipcSections: string[]): string[] {
   const crimes = new Set<string>();
 
   for (const section of ipcSections) {
-    const normalized = section.toLowerCase().trim();
+    const normalized = section.toLowerCase().trim().replace(/^0+/, "");
     const crime = HEINOUS_CRIME_MAP[normalized];
     if (crime) {
       crimes.add(crime);
