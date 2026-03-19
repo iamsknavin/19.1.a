@@ -339,10 +339,16 @@ class SupabasePipeline:
             return
         try:
             update_data: dict[str, Any] = {}
-            if item.get("ecourts_case_id"):
-                update_data["ecourts_case_id"] = item["ecourts_case_id"]
-            if item.get("current_status"):
-                update_data["current_status"] = item["current_status"]
+            for field in [
+                "ecourts_case_id",
+                "current_status",
+                "next_hearing_date",
+                "last_hearing_date",
+                "judge_name",
+                "court_name",
+            ]:
+                if item.get(field):
+                    update_data[field] = item[field]
 
             if update_data:
                 self.supabase.table("criminal_cases").update(

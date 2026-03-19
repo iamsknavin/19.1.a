@@ -67,6 +67,8 @@ export const CASE_STATUS_COLORS: Record<string, string> = {
   acquitted: "text-safe border-safe",
   discharged: "text-text-secondary border-border",
   stayed: "text-warning border-warning",
+  disposed: "text-text-secondary border-border",
+  transferred: "text-text-secondary border-border",
   unknown: "text-text-muted border-border",
 };
 

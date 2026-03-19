@@ -337,6 +337,9 @@ export interface Database {
           id: string
           ipc_sections: string[] | null
           is_heinous: boolean | null
+          judge_name: string | null
+          last_hearing_date: string | null
+          next_hearing_date: string | null
           politician_id: string
           sentence_description: string | null
           source_url: string | null
@@ -357,6 +360,9 @@ export interface Database {
           id?: string
           ipc_sections?: string[] | null
           is_heinous?: boolean | null
+          judge_name?: string | null
+          last_hearing_date?: string | null
+          next_hearing_date?: string | null
           politician_id: string
           sentence_description?: string | null
           source_url?: string | null
@@ -377,6 +383,9 @@ export interface Database {
           id?: string
           ipc_sections?: string[] | null
           is_heinous?: boolean | null
+          judge_name?: string | null
+          last_hearing_date?: string | null
+          next_hearing_date?: string | null
           politician_id?: string
           sentence_description?: string | null
           source_url?: string | null

@@ -546,14 +546,35 @@ function TabLayout({
                     {c.conviction_year && <span>Convicted: {c.conviction_year}</span>}
                   </div>
 
-                  {/* eCourts integration & source */}
-                  <div className="mt-2 flex items-center gap-2">
+                  {/* eCourts live data */}
+                  {c.ecourts_case_id && (
+                    <div className="mt-2 bg-surface-2 border border-safe/20 rounded-sm p-2.5">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="font-mono text-2xs text-safe font-semibold uppercase tracking-wider">eCourts Live</span>
+                        <span className="font-mono text-2xs text-text-muted">CNR: {c.ecourts_case_id}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-2xs font-mono text-text-secondary">
+                        {c.judge_name && (
+                          <span>Judge: {c.judge_name}</span>
+                        )}
+                        {c.next_hearing_date && (
+                          <span className="text-accent">Next Hearing: {formatDate(c.next_hearing_date)}</span>
+                        )}
+                        {c.last_hearing_date && (
+                          <span>Last Heard: {formatDate(c.last_hearing_date)}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Source tags */}
+                  <div className={`${c.ecourts_case_id ? "mt-2" : "mt-2"} flex items-center gap-2`}>
                     {c.source_url && (
                       <DataSourceTag source="myneta" url={c.source_url} />
                     )}
                     {c.ecourts_case_id ? (
                       <span className="font-mono text-2xs text-safe border border-safe/30 px-1.5 py-0.5 rounded-sm">
-                        eCourts: {c.ecourts_case_id}
+                        eCourts: linked
                       </span>
                     ) : (
                       <span className="font-mono text-2xs text-text-muted border border-border/30 px-1.5 py-0.5 rounded-sm opacity-50">

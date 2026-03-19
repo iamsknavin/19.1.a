@@ -101,7 +101,7 @@ class ECourtsSpider(scrapy.Spider):
 
     def parse_case_status(self, response: Response) -> Generator:
         """Parse eCourts case status page."""
-        from scraper.parsers.ecourts_parser import parse_ecourts_response
+        from parsers.ecourts_parser import parse_ecourts_response
 
         case_id = response.meta["case_id"]
         case_number = response.meta["case_number"]
