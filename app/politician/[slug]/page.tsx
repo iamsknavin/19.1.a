@@ -9,6 +9,12 @@ import {
   formatPercent,
 } from "@/lib/formatters";
 import { HOUSE_LABELS, CASE_STATUS_COLORS } from "@/lib/utils";
+import {
+  getIPCLabel,
+  getCrimeNames,
+  getHeinousCrimeTypes,
+  getStatusLabel,
+} from "@/lib/ipc-sections";
 import { PartyBadge } from "@/components/politician/PartyBadge";
 import { CasesBadge } from "@/components/politician/CasesBadge";
 import { WealthBar } from "@/components/politician/WealthBar";
@@ -439,76 +445,123 @@ function TabLayout({
           </div>
         ) : (
           <div className="space-y-3">
-            {heinousCases.length > 0 && (
-              <div className="bg-danger/10 border border-danger/40 p-3 rounded-sm mb-4">
-                <p className="font-mono text-danger text-xs font-semibold">
-                  ⚠ Heinous offences declared: murder, rape, kidnapping, or major financial fraud
-                </p>
-              </div>
-            )}
+            {heinousCases.length > 0 && (() => {
+              const allHeinousSections = heinousCases.flatMap((c) => c.ipc_sections ?? []);
+              const specificCrimes = getHeinousCrimeTypes(allHeinousSections);
+              return (
+                <div className="bg-danger/10 border border-danger/40 p-3 rounded-sm mb-4">
+                  <p className="font-mono text-danger text-xs font-semibold">
+                    ⚠ Heinous charges include: {specificCrimes.length > 0
+                      ? specificCrimes.join(", ")
+                      : "Major financial fraud"}
+                  </p>
+                </div>
+              );
+            })()}
 
-            {cases.map((c) => (
-              <div
-                key={c.id}
-                className={`bg-surface border rounded-sm p-4 ${
-                  c.is_heinous ? "border-danger/40" : "border-border"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {(c.ipc_sections ?? []).filter((s) => !/^(19|20)\d{2}$/.test(s)).map((section) => (
+            {cases.map((c) => {
+              const sections = (c.ipc_sections ?? []).filter((s) => !/^(19|20)\d{2}$/.test(s));
+              const crimeNames = getCrimeNames(sections);
+              const heinousCrimes = c.is_heinous ? getHeinousCrimeTypes(sections) : [];
+              const status = getStatusLabel(c.current_status);
+
+              return (
+                <div
+                  key={c.id}
+                  className={`bg-surface border rounded-sm p-4 ${
+                    c.is_heinous ? "border-danger/40" : "border-border"
+                  }`}
+                >
+                  {/* Crime type headline */}
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-text-primary font-medium leading-snug">
+                        {crimeNames.length > 0
+                          ? crimeNames.slice(0, 4).join(", ") + (crimeNames.length > 4 ? ` +${crimeNames.length - 4} more` : "")
+                          : "Criminal Case"}
+                      </p>
+                    </div>
+                    <span
+                      className={`font-mono text-2xs px-2 py-0.5 border rounded-sm shrink-0 ${
+                        CASE_STATUS_COLORS[c.current_status ?? "unknown"]
+                      }`}
+                      title={status.description}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+
+                  {/* Heinous badge — specific crime type */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {heinousCrimes.map((crime) => (
+                      <span
+                        key={crime}
+                        className="font-mono text-2xs bg-danger/20 border border-danger/50 text-danger px-1.5 py-0.5 rounded-sm uppercase font-semibold"
+                      >
+                        {crime}
+                      </span>
+                    ))}
+                    {c.current_status === "convicted" && c.sentence_description && (
+                      <span className="font-mono text-2xs bg-danger/10 border border-danger/30 text-danger px-1.5 py-0.5 rounded-sm">
+                        {c.sentence_description}
+                      </span>
+                    )}
+                    {c.current_status === "acquitted" && (
+                      <span className="font-mono text-2xs bg-safe/20 border border-safe/50 text-safe px-1.5 py-0.5 rounded-sm">
+                        Cleared by Court
+                      </span>
+                    )}
+                  </div>
+
+                  {/* IPC sections as subtle references */}
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {sections.map((section) => (
                       <span
                         key={section}
-                        className="font-mono text-2xs bg-surface-2 border border-border px-1.5 py-0.5 rounded-sm text-text-secondary"
+                        className="font-mono text-2xs bg-surface-2 border border-border px-1.5 py-0.5 rounded-sm text-text-muted"
+                        title={getIPCLabel(section)}
                       >
                         §{section}
                       </span>
                     ))}
-                    {c.is_heinous && (
-                      <span className="font-mono text-2xs bg-danger/20 border border-danger/50 text-danger px-1.5 py-0.5 rounded-sm">
-                        HEINOUS
+                  </div>
+
+                  {/* Case description */}
+                  {c.case_description && !/^\s*(?:Rs\.?\s*)?[\d,]+(?:\.\d+)?\s*(?:~[\d.]+\s*(?:Lacs?|Crore|Lakhs?)\+?)?\s*$/.test(c.case_description) && (
+                    <p className="text-xs text-text-secondary mb-2 leading-relaxed">
+                      {c.case_description}
+                    </p>
+                  )}
+
+                  {/* Court & filing metadata */}
+                  <div className="flex flex-wrap gap-4 text-2xs font-mono text-text-muted">
+                    {c.court_name && !/^\s*(?:Rs\.?\s*)?[\d,]+/.test(c.court_name) && <span>{c.court_name}</span>}
+                    {c.case_number && <span>Case: {c.case_number}</span>}
+                    {c.date_of_filing && (
+                      <span>Filed: {formatDate(c.date_of_filing)}</span>
+                    )}
+                    {c.case_year && <span>Year: {c.case_year}</span>}
+                    {c.conviction_year && <span>Convicted: {c.conviction_year}</span>}
+                  </div>
+
+                  {/* eCourts integration & source */}
+                  <div className="mt-2 flex items-center gap-2">
+                    {c.source_url && (
+                      <DataSourceTag source="myneta" url={c.source_url} />
+                    )}
+                    {c.ecourts_case_id ? (
+                      <span className="font-mono text-2xs text-safe border border-safe/30 px-1.5 py-0.5 rounded-sm">
+                        eCourts: {c.ecourts_case_id}
+                      </span>
+                    ) : (
+                      <span className="font-mono text-2xs text-text-muted border border-border/30 px-1.5 py-0.5 rounded-sm opacity-50">
+                        eCourts: not linked
                       </span>
                     )}
                   </div>
-                  <span
-                    className={`font-mono text-2xs px-2 py-0.5 border rounded-sm shrink-0 ${
-                      CASE_STATUS_COLORS[c.current_status ?? "unknown"]
-                    }`}
-                  >
-                    {c.current_status ?? "unknown"}
-                  </span>
                 </div>
-
-                {c.case_description && !/^\s*(?:Rs\.?\s*)?[\d,]+(?:\.\d+)?\s*(?:~[\d.]+\s*(?:Lacs?|Crore|Lakhs?)\+?)?\s*$/.test(c.case_description) && (
-                  <p className="text-xs text-text-secondary mb-2 leading-relaxed">
-                    {c.case_description}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap gap-4 text-2xs font-mono text-text-muted">
-                  {c.court_name && !/^\s*(?:Rs\.?\s*)?[\d,]+/.test(c.court_name) && <span>{c.court_name}</span>}
-                  {c.date_of_filing && (
-                    <span>Filed: {formatDate(c.date_of_filing)}</span>
-                  )}
-                  {c.case_year && <span>Year: {c.case_year}</span>}
-                </div>
-
-                <div className="mt-2 flex items-center gap-2">
-                  {c.source_url && (
-                    <DataSourceTag source="myneta" url={c.source_url} />
-                  )}
-                  {c.ecourts_case_id ? (
-                    <span className="font-mono text-2xs text-safe border border-safe/30 px-1.5 py-0.5 rounded-sm">
-                      eCourts: {c.ecourts_case_id}
-                    </span>
-                  ) : (
-                    <span className="font-mono text-2xs text-text-muted border border-border/30 px-1.5 py-0.5 rounded-sm opacity-50">
-                      eCourts: not linked
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

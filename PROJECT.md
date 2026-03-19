@@ -25,19 +25,20 @@
 
 19.1.a aggregates publicly available data about Indian elected representatives — criminal cases, asset declarations, parliamentary attendance, corruption signals, MPLAD fund usage, and news controversies — into a single, searchable platform. All data comes from mandatory public disclosures and government portals.
 
-**Live Stats (as of 2026-03-12):**
+**Live Stats (as of 2026-03-19):**
 
 | Metric               | Count  |
 | --------------------- | ------ |
-| Politicians           | 550    |
-| Lok Sabha MPs         | 545    |
-| Vidhan Sabha MLAs     | 4      |
+| Politicians           | 551    |
 | Parties               | 35     |
-| Criminal Cases        | 1,701  |
+| Criminal Cases        | 717    |
 | Asset Declarations    | 545    |
-| Corruption Signals    | 29     |
+| Attendance Records    | 452    |
 | Controversies         | 1,814  |
-| Attendance Records    | 66     |
+| Company Interests     | 221    |
+| Fund Usage (MPLAD)    | 457    |
+| Corruption Signals    | 29     |
+| Govt Tenders          | 0      |
 
 ---
 
@@ -274,7 +275,7 @@
 | auto_generated | boolean? | Default true — engine-generated signals |
 | is_dismissed | boolean? | Default false |
 
-#### `attendance_records` (66 rows)
+#### `attendance_records` (452 rows)
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | uuid (PK) | |
@@ -288,19 +289,19 @@
 | debates_participated | int? | |
 | bills_introduced | int? | |
 
-#### `assets_declarations` (0 rows — needs scraper re-run)
+#### `assets_declarations` (545 rows)
 Detailed asset breakdown from ECI affidavits: cash, bank deposits, bonds, LIC, vehicles, jewelry, land, buildings, total movable/immovable, liabilities, net worth, spouse assets.
 
-#### `election_terms` (0 rows — needs scraper re-run)
+#### `election_terms`
 Election history: year, house, constituency, votes received, vote share, margin, result.
 
-#### `company_interests` (0 rows — needs MCA21 API key)
-Corporate directorships and shareholdings from MCA21 registry.
+#### `company_interests` (221 rows)
+Corporate directorships and shareholdings from MyNeta RS interest declarations.
 
-#### `govt_tenders` (0 rows — needs company data first)
+#### `govt_tenders` (0 rows — needs company data from GeM)
 GeM procurement contracts linked to politician-associated companies.
 
-#### `fund_usage` (0 rows — needs MPLAD portal data)
+#### `fund_usage` (457 rows)
 MPLAD/MLALAD fund allocation, release, and utilization with projects (JSONB).
 
 ---
@@ -325,11 +326,11 @@ LOG_LEVEL:               INFO
 | Spider | File | Command | Data Target | Status |
 | --- | --- | --- | --- | --- |
 | `myneta` | `myneta_spider.py` | `scrapy crawl myneta` | Politicians, criminal cases, assets | Active |
-| `prs_attendance` | `prs_attendance.py` | `scrapy crawl prs_attendance` | Attendance records | Active (66/543 matched) |
+| `prs_attendance` | `prs_attendance.py` | `scrapy crawl prs_attendance` | Attendance records | Active (452 records) |
 | `news` | `news_spider.py` | `scrapy crawl news` | Controversies | Active (1,814 scraped) |
 | `ecourts` | `ecourts_spider.py` | `scrapy crawl ecourts` | Criminal case updates | Ready (needs case_numbers) |
-| `mplad` | `mplad_spider.py` | `scrapy crawl mplad` | Fund usage | Ready (needs portal data) |
-| `mca21` | `mca21_spider.py` | `scrapy crawl mca21` | Company interests | Blocked (needs API key) |
+| `mplad` | `mplad_spider.py` | `scrapy crawl mplad` | Fund usage | Active (457 records from CSV import) |
+| `mca21` | `mca21_spider.py` | `scrapy crawl mca21` | Company interests | Active (221 records, free via MyNeta RS) |
 | `gem` | `gem_spider.py` | `scrapy crawl gem` | Govt tenders | Blocked (needs company data) |
 | `eci_affidavit` | `eci_affidavit.py` | — | Asset declarations | Phase 2 stub |
 | `sansad` | `sansad_spider.py` | — | Parliament data | Phase 2 stub |
@@ -585,6 +586,25 @@ docker run -d -p 7700:7700 \
 ---
 
 ## Changelog
+
+### 2026-03-19 — Criminal Cases UX Overhaul + Rebrand
+- **Rebrand:** NETAwatch → 19.1.a (Article 19(1)(a) of the Constitution) — 21 files updated
+- **Added:** `lib/ipc-sections.ts` — Human-readable IPC section labels (100+ sections mapped)
+- **Added:** Criminal case cards now show crime names ("Murder", "Cheating/Fraud") instead of raw section numbers
+- **Added:** Heinous badge shows specific charge type ("MURDER", "RAPE") instead of generic "HEINOUS"
+- **Added:** Heinous warning banner lists actual charges found on the politician
+- **Added:** Status labels are user-friendly ("Trial Pending", "Acquitted — Cleared by Court")
+- **Added:** Case number, conviction year, and sentence description shown when available
+- **Added:** Supreme Court citation on About page (S.P. Gupta v. UOI, 1981)
+- **Added:** Article 19(1)(a) quote block on hero section and about page
+- **Added:** Skeleton loading states for all pages
+- **Added:** Animated components (CountUp, RevealOnScroll, AnimatedList)
+- **Added:** Mobile navigation drawer (MobileNav component)
+- **Updated:** Homepage stats expanded to 6 cards (attendance + company interests)
+- **Updated:** Company interests tab fully rendered (was hidden behind PhaseStub)
+- **Updated:** PROJECT.md stats updated to current counts
+- **Fixed:** MCA21 spider "YES" checkbox values stored as company names
+- **Data:** 551 politicians, 717 cases, 545 assets, 452 attendance, 221 companies, 457 fund usage
 
 ### 2026-03-12 — Asset Parser Fix + Full Re-scrape
 - **Fixed:** Asset extraction was reading wrong table columns (grabbed `dependent3` instead of `self`)

@@ -111,7 +111,7 @@ REDIS_URL=redis://localhost:6379/0
 # === OPTIONAL ===
 MEILISEARCH_HOST=<meilisearch-cloud-url-if-applicable>
 MEILISEARCH_ADMIN_KEY=<meilisearch-admin-key>
-OPENCORPORATES_API_KEY=<sign-up-at-opencorporates.com>
+OPENCORPORATES_API_KEY=<optional-not-needed-for-myneta-rs-scraping>
 DRY_RUN=false
 ```
 
@@ -261,7 +261,7 @@ scrapy crawl ecourts
 # MPLAD fund utilization (needs MPLAD portal to be up)
 scrapy crawl mplad
 
-# Company interests (needs OPENCORPORATES_API_KEY in .env)
+# Company interests (free — scrapes MyNeta RS interest declarations)
 scrapy crawl mca21
 
 # GeM tenders (needs company_interests data from mca21 first)
@@ -523,6 +523,7 @@ sudo journalctl -u nineteen1a-worker --since "1 hour ago" | tail -100
 | `scraper/spiders/news_spider.py` | Google News RSS controversies | When adding new controversy keywords |
 | `scraper/pipelines/supabase_pipeline.py` | DB write logic for all item types | When adding new data types |
 | `scraper/parsers/ecourts_parser.py` | eCourts response parsing | When eCourts API changes |
+| `lib/ipc-sections.ts` | IPC section → human-readable crime labels | When adding new IPC sections |
 
 ---
 
