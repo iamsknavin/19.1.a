@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Seat, CoalitionStat } from "@/lib/hemicycle-layout";
+import { PARTY_NAMES } from "@/lib/coalitions";
 
 interface Props {
   seats: Seat[];
@@ -97,10 +98,13 @@ export function ParliamentHemicycle({
               style={{ backgroundColor: seats.find((s) => s.party === hoveredParty)?.color }}
             />
             <span className="text-text-primary font-semibold">
+              {PARTY_NAMES[hoveredParty] ?? hoveredParty}
+            </span>
+            <span className="text-text-muted">
               {hoveredParty}
             </span>
             <span className="text-text-secondary">
-              {partyCounts[hoveredParty]} seats
+              · {partyCounts[hoveredParty]} seats
             </span>
           </span>
         </div>

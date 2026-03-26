@@ -9,14 +9,15 @@ export type CoalitionName = "NDA" | "INDIA" | "OTHER";
 const NDA_PARTIES = [
   "BJP", "JDU", "TDP", "SS", "SHS", "JDS", "AGP", "RLD",
   "LJPRV", "ADMP", "AJSUP", "HAMS", "JSP", "NDPP", "NPF",
-  "NPP", "RLP", "SKM", "UPPL", "RLTP", "PMK",
+  "NPP", "RLP", "SKM", "UPPL", "RLTP", "PMK", "MNF", "ADAL",
+  "SDF", "ZNPM", "PRAJA",
 ];
 
 /** INDIA (Indian National Developmental Inclusive Alliance) — opposition */
 const INDIA_PARTIES = [
-  "INC", "SP", "AITC", "DMK", "NCP", "RJD", "AAP", "CPI",
-  "CPM", "CPIM", "IUML", "VCK", "RSP", "MDMK", "JMM",
-  "KC(M)", "KCM",
+  "INC", "SP", "AITC", "DMK", "NCP", "NCP(SP)", "RJD", "AAP",
+  "CPI", "CPM", "CPIM", "CPIML", "IUML", "VCK", "RSP", "MDMK",
+  "JMM", "KC(M)", "KCM", "SSUBT", "AIFB", "KECM",
 ];
 
 const NDA_SET = new Set(NDA_PARTIES);
@@ -73,3 +74,41 @@ const DEFAULT_COLOR = "#6B7280";
 export function getPartyColor(abbreviation: string): string {
   return PARTY_COLORS[abbreviation] ?? DEFAULT_COLOR;
 }
+
+/** Full party names for display in tooltips */
+export const PARTY_NAMES: Record<string, string> = {
+  BJP:       "Bharatiya Janata Party",
+  INC:       "Indian National Congress",
+  SP:        "Samajwadi Party",
+  AITC:      "All India Trinamool Congress",
+  DMK:       "Dravida Munnetra Kazhagam",
+  TDP:       "Telugu Desam Party",
+  JDU:       "Janata Dal (United)",
+  NCP:       "Nationalist Congress Party",
+  "NCP(SP)": "NCP (Sharadchandra Pawar)",
+  SS:        "Shiv Sena",
+  SSUBT:     "Shiv Sena (UBT)",
+  CPI:       "Communist Party of India",
+  CPM:       "CPI (Marxist)",
+  CPIM:      "CPI (Marxist)",
+  CPIML:     "CPI (ML) Liberation",
+  RJD:       "Rashtriya Janata Dal",
+  YSRCP:     "YSR Congress Party",
+  AAP:       "Aam Aadmi Party",
+  IUML:      "Indian Union Muslim League",
+  RLD:       "Rashtriya Lok Dal",
+  JDS:       "Janata Dal (Secular)",
+  VCK:       "Viduthalai Chiruthaigal Katchi",
+  RSP:       "Revolutionary Socialist Party",
+  MDMK:      "Marumalarchi DMK",
+  AIMIM:     "All India Majlis-e-Ittehadul Muslimeen",
+  BSP:       "Bahujan Samaj Party",
+  AGP:       "Asom Gana Parishad",
+  PMK:       "Pattali Makkal Katchi",
+  MNF:       "Mizo National Front",
+  ADAL:      "Apna Dal (Sonelal)",
+  JMM:       "Jharkhand Mukti Morcha",
+  BRS:       "Bharat Rashtra Samithi",
+  AIADMK:    "All India Anna DMK",
+  IND:       "Independent",
+};
