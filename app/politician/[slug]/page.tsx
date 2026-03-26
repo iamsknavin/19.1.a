@@ -282,7 +282,8 @@ function TabLayout({
           { id: "elections", label: `Elections (${terms.length})` },
           { id: "performance", label: "Parliament" },
           { id: "companies", label: `Companies (${companyInterests.length})` },
-          { id: "controversies", label: "Controversies" },
+          { id: "controversies", label: `Controversies (${controversies.length})` },
+          { id: "tenders", label: "Tenders" },
         ].map((tab) => (
           <a
             key={tab.id}
@@ -962,6 +963,41 @@ function TabLayout({
               })}
           </div>
         )}
+      </section>
+
+      {/* Tab 7: Government Tenders — Phase 4 */}
+      <section id="tenders" className="mb-8 scroll-mt-20">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-mono text-text-secondary text-xs uppercase tracking-widest">
+            Government Tenders
+          </h2>
+          <span className="font-mono text-2xs border border-border text-text-muted px-2 py-0.5 rounded-sm">
+            Phase 4
+          </span>
+        </div>
+
+        <div className="border border-dashed border-border/60 rounded-sm p-8">
+          <div className="text-center max-w-sm mx-auto">
+            <div className="w-10 h-10 rounded-sm bg-surface-2 border border-border flex items-center justify-center mx-auto mb-4">
+              <span className="font-mono text-text-muted text-lg">⟳</span>
+            </div>
+            <h3 className="font-semibold text-text-primary text-sm mb-2">
+              GeM Tender Tracking — Coming in Phase 4
+            </h3>
+            <p className="text-xs text-text-secondary leading-relaxed mb-4">
+              We&apos;re building a pipeline to cross-reference this MP&apos;s
+              company interests against government procurement contracts on the
+              GeM portal. This will flag potential conflicts of interest between
+              declared business links and public contracts.
+            </p>
+            <a
+              href="/data-sources"
+              className="font-mono text-2xs text-accent hover:underline"
+            >
+              See our Phase 4 roadmap →
+            </a>
+          </div>
+        </div>
       </section>
     </div>
   );
