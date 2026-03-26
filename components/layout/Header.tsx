@@ -46,6 +46,14 @@ export function Header() {
             >
               GitHub ↗
             </a>
+            {/* Report incorrect data or send feedback */}
+            <a
+              href="mailto:naveencsk111@gmail.com?subject=19.1.a%20%E2%80%94%20Data%20Report%20%2F%20Feedback"
+              className="font-mono text-2xs border border-accent/40 text-accent px-2 py-1 rounded-sm hover:bg-accent hover:text-bg transition-colors"
+              title="Report incorrect data or send feedback"
+            >
+              Report ✉
+            </a>
           </nav>
 
           {/* Mobile Nav */}

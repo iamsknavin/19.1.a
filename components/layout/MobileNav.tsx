@@ -124,8 +124,15 @@ export function MobileNav() {
               </a>
             </nav>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-border">
+            {/* Footer — report link + tagline */}
+            <div className="p-4 border-t border-border space-y-3">
+              <a
+                href="mailto:naveencsk111@gmail.com?subject=19.1.a%20%E2%80%94%20Data%20Report%20%2F%20Feedback"
+                className="flex items-center gap-2 font-mono text-xs text-accent border border-accent/30 px-3 py-2 rounded-sm hover:bg-accent/10 transition-colors"
+              >
+                <span>✉</span>
+                <span>Report incorrect data / Feedback</span>
+              </a>
               <p className="font-mono text-2xs text-text-muted">
                 Your right to know.
               </p>
