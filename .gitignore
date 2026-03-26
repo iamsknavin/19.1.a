@@ -58,3 +58,7 @@ nul
 # Claude Code (local editor config — never commit)
 .claude/
 logs/
+
+# Personal reference files (local only)
+INSTRUCTIONS_FOR_TARS.md
+PROJECT.md
