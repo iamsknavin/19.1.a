@@ -48,8 +48,13 @@ meili.exe
 *.meilisearch-data/
 .meilisearch-data/
 data.ms/
+meili-*.txt
 
 # Test screenshots (scraper)
 scraper/test_*.png
 scraper/test_*.jpg
 nul
+
+# Claude Code (local editor config — never commit)
+.claude/
+logs/
