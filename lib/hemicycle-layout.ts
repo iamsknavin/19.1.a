@@ -1,6 +1,15 @@
 /**
- * Pure math: compute (x, y) positions for parliament hemicycle seats.
- * No React — just geometry. Used server-side.
+ * Hemicycle layout engine for the parliament seat visualisation.
+ *
+ * Computes (x, y) coordinates for every seat in a semicircular arc
+ * (hemicycle), coloured by party and grouped by coalition. The output
+ * is a flat list of {@link Seat} objects ready for SVG rendering.
+ *
+ * No React — pure math. Safe to run server-side during page generation.
+ *
+ * Coordinate system: 500×280 viewBox, origin top-left.
+ * The arc sweeps from π (left edge) to 0 (right edge) with the focal
+ * point at (250, 265) near the bottom of the viewBox.
  */
 
 import {
@@ -32,9 +41,16 @@ export interface PartyInput {
 
 /**
  * Lay out seats in a hemicycle (semicircle from left to right).
- * Returns seat positions in a 500×280 viewBox.
+ *
+ * Seats are distributed across {@link NUM_ROWS} concentric arcs. The number
+ * of seats per row is proportional to the arc's radius (longer arcs get more
+ * seats), so seat density stays roughly uniform across rows.
  *
  * Coalition ordering: INDIA on the left, OTHER in the center, NDA on the right.
+ * Within each coalition, parties are sorted largest-first.
+ *
+ * @param parties - List of party abbreviations with their seat counts.
+ * @returns Seat positions, per-coalition summary stats, and total seat count.
  */
 export function computeHemicycleLayout(parties: PartyInput[]): {
   seats: Seat[];

@@ -30,15 +30,17 @@ Track Lok Sabha MPs, State MLAs, wealth declarations, criminal cases, controvers
 |-------|------|
 | Frontend | Next.js 14 App Router + TypeScript + Tailwind |
 | Database | Supabase (PostgreSQL) |
-| Search | Meilisearch |
+| Search | Meilisearch (optional — falls back to Supabase full-text search) |
 | Scraper | Python + Scrapy |
 | Hosting | Vercel (frontend) + Supabase (DB) |
 
 ## Current Data
 
+544 Lok Sabha MPs (18th Lok Sabha, incl. Priyanka Gandhi Vadra Wayanad by-election)
+
 | Table | Records | Source |
 |-------|---------|--------|
-| Politicians | 551 | MyNeta / ADR + ECI |
+| Politicians | 544 | MyNeta / ADR + ECI |
 | Criminal Cases | 717 | ECI Affidavits (via MyNeta) |
 | Asset Declarations | 545 | ECI Affidavits (via MyNeta) |
 | Controversies | 1,814 | Google News RSS |
@@ -76,7 +78,10 @@ Get your keys from:
 - [Supabase Dashboard](https://app.supabase.com) → Project Settings → API
 - Meilisearch: `docker run -d -p 7700:7700 getmeili/meilisearch:latest` (no key needed locally)
 
-### 3. Start Meilisearch (local dev)
+### 3. Start Meilisearch (local dev, optional)
+
+Meilisearch is optional. If it is not running, the search API automatically
+falls back to Supabase full-text search (ilike). For production, [Meilisearch Cloud](https://cloud.meilisearch.com) is recommended for typo-tolerance and performance.
 
 ```bash
 docker run -d -p 7700:7700 getmeili/meilisearch:latest
@@ -145,6 +150,16 @@ curl -X POST http://localhost:3000/api/sync-search \
 
 ---
 
+## Phase 4 Roadmap
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| GeM Tender Tracking | Blocked | Waiting on `company_interests` data from MCA21 spider |
+| Rajya Sabha Members | In progress | Sansad.in scraper needed (MyNeta has no RS page) |
+| Complete Attendance Data | Partial | 91/543 MPs tracked via PRS; AJAX pagination needed |
+
+---
+
 ## Environment Variables
 
 ```
@@ -171,6 +186,14 @@ MEILISEARCH_ADMIN_KEY=           # Admin key (server only)
 ## Disclaimer
 
 All data on 19.1.a is sourced from mandatory public disclosures made by politicians themselves. 19.1.a does not make allegations — we present public records. 19.1.a is not affiliated with the Government of India or the Election Commission of India.
+
+---
+
+## Troubleshooting
+
+- **Meilisearch not running:** Search still works via Supabase fallback. For production, use [Meilisearch Cloud](https://cloud.meilisearch.com).
+- **Supabase RLS errors:** Ensure your `.env.local` has the correct `SUPABASE_SERVICE_ROLE_KEY` for write operations.
+- **Build errors:** Run `npm run lint` first to catch TypeScript issues.
 
 ---
 

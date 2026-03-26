@@ -1,8 +1,25 @@
 /**
- * Human-readable labels for IPC (Indian Penal Code) and BNS (Bharatiya Nyaya Sanhita) sections.
- * Used to make criminal case data meaningful to non-legal users.
+ * IPC / BNS section label map and crime-type utilities.
+ *
+ * The Indian Penal Code (IPC, 1860) defines criminal offences and their
+ * punishments. It is being phased out in favour of the Bharatiya Nyaya
+ * Sanhita (BNS, 2023), but election affidavits still reference IPC section
+ * numbers as of the 18th Lok Sabha.
+ *
+ * This module maps numeric section codes to plain-English crime descriptions
+ * and provides helpers used by the criminal cases UI and the corruption
+ * signal engine.
+ *
+ * Sections covered:
+ *   - IPC offences against the state, body, property, and public order
+ *   - Prevention of Corruption Act (PCA) sections
+ *   - SC/ST Prevention of Atrocities Act
+ *   - Arms Act sections
  */
 
+// ---------------------------------------------------------------------------
+// IPC label map — section number → plain-English description
+// ---------------------------------------------------------------------------
 const IPC_LABELS: Record<string, string> = {
   // Offences against the State
   "121": "Waging War Against India",
@@ -106,6 +123,10 @@ const IPC_LABELS: Record<string, string> = {
   "509": "Word / Gesture to Insult Modesty of Woman",
 };
 
+// ---------------------------------------------------------------------------
+// Crime name helpers
+// ---------------------------------------------------------------------------
+
 /**
  * Get a human-readable label for an IPC section number.
  */
@@ -136,7 +157,16 @@ export function getCrimeNames(ipcSections: string[]): string[] {
   return names;
 }
 
-/** Heinous IPC sections mapped to their specific crime type */
+// ---------------------------------------------------------------------------
+// Heinous crime map — curated subset for severity classification
+//
+// Only sections that represent the most serious offences are listed here.
+// The signal engine uses this map to flag politicians with "heinous_cases"
+// at "critical" severity. This is deliberately conservative — when in
+// doubt, a section is omitted rather than incorrectly elevated.
+// ---------------------------------------------------------------------------
+
+/** Curated map of heinous IPC sections to specific crime labels. */
 const HEINOUS_CRIME_MAP: Record<string, string> = {
   "302": "Murder",
   "304": "Culpable Homicide",
@@ -175,6 +205,10 @@ export function getHeinousCrimeTypes(ipcSections: string[]): string[] {
 
   return Array.from(crimes);
 }
+
+// ---------------------------------------------------------------------------
+// Case status helpers
+// ---------------------------------------------------------------------------
 
 /**
  * Get a user-friendly status label and description.

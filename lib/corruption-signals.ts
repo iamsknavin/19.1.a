@@ -2,14 +2,26 @@
  * Corruption Signal Engine — Phase 2D
  *
  * Analyzes criminal cases, assets, and attendance data to generate
- * automated corruption risk signals for each politician.
+ * automated corruption risk signals for each politician. All signals are
+ * derived exclusively from mandatory public disclosures and carry the
+ * `auto_generated: true` flag so they can be distinguished from manually
+ * curated signals.
  *
  * Signal types:
- *   - heinous_cases: Has cases involving murder, kidnapping, etc.
- *   - high_case_count: Unusually high number of pending criminal cases
- *   - wealth_surge: Disproportionate asset growth (needs multi-year data)
- *   - low_attendance: Parliamentary attendance well below average
- *   - low_participation: Very few questions/debates despite being in office
+ *   - heinous_cases:      Has cases involving murder, kidnapping, etc.
+ *   - high_case_count:    Unusually high number of pending criminal cases
+ *   - corruption_charges: Charged under Prevention of Corruption Act
+ *   - fraud_charges:      Charged under IPC fraud/forgery sections
+ *   - wealth_surge:       Disproportionate asset growth (needs multi-year data)
+ *   - low_attendance:     Parliamentary attendance well below average
+ *   - low_participation:  Very few questions/debates despite being in office
+ *
+ * Severity thresholds:
+ *   - medium:   Attendance < 40%, pending cases 5–6, asset growth 5–10×
+ *   - high:     Attendance < 20%, pending cases 7–9, asset growth > 10×,
+ *               fraud charges (IPC 420 / 406 / 409 / 467 / 468 / 471)
+ *   - critical: Any heinous case, pending cases ≥ 10, PCA charges,
+ *               asset growth > 10×
  */
 
 export type SignalSeverity = "low" | "medium" | "high" | "critical";
@@ -31,6 +43,18 @@ interface PoliticianData {
   assets_declarations: { total_assets: number | null; net_worth: number | null; declaration_year: number }[];
 }
 
+/**
+ * Compute all corruption risk signals for a single politician.
+ *
+ * Runs six independent checks in order: heinous offences, high pending case
+ * count, corruption / fraud IPC sections, low attendance, low participation,
+ * and disproportionate wealth growth. Each check may emit zero or one signal.
+ *
+ * @param politician - Politician record with related criminal cases,
+ *   attendance records, and asset declarations already joined.
+ * @returns Array of {@link CorruptionSignal} objects ready for DB insertion.
+ *   Returns an empty array when no signals are triggered.
+ */
 export function computeSignals(politician: PoliticianData): CorruptionSignal[] {
   const signals: CorruptionSignal[] = [];
   const pid = politician.id;

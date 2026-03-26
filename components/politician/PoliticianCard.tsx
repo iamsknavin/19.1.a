@@ -11,7 +11,6 @@ interface PoliticianCardProps {
 }
 
 export function PoliticianCard({ politician: p }: PoliticianCardProps) {
-  const hasHeinous = false; // Phase 2: compute from criminal_cases
   const houseLabel = HOUSE_LABELS[p.house ?? ""] ?? p.house;
 
   return (
@@ -47,7 +46,7 @@ export function PoliticianCard({ politician: p }: PoliticianCardProps) {
             </h3>
             <CasesBadge
               count={p.criminal_case_count}
-              hasHeinous={hasHeinous}
+              hasHeinous={false}
               className="shrink-0"
             />
           </div>

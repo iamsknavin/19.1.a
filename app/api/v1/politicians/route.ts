@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient, castRows } from "@/lib/supabase";
 import { parsePagination, jsonResponse, errorResponse, checkRateLimit } from "@/lib/api-helpers";
 
 export const revalidate = 300;
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
   if (error) return errorResponse(error.message, 500);
 
-  const rows = (data ?? []) as unknown as PoliticianRow[];
+  const rows = castRows<PoliticianRow>(data);
 
   // Transform and filter
   const politicians = rows

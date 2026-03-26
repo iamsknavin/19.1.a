@@ -83,7 +83,19 @@ export async function configureSearchIndex() {
 
 /**
  * Sync all active politicians from Supabase into Meilisearch.
- * Called after scraper runs or on demand via /api/sync-search.
+ *
+ * Fetches every politician where `is_active = true`, joins their latest
+ * asset declaration and total criminal case count, then bulk-upserts the
+ * resulting documents into the `politicians` Meilisearch index.
+ *
+ * Also reconfigures index settings (searchable / filterable / sortable
+ * attributes) on every run — safe to call repeatedly.
+ *
+ * Call this after every scraper run, or on demand via `POST /api/sync-search`
+ * (requires `Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>`).
+ *
+ * @returns Object with `added` (document count upserted) and `errors`
+ *   (array containing the Meilisearch task UID for async status tracking).
  */
 export async function syncPoliticiansIndex(): Promise<{
   added: number;

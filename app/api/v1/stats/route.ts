@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createServerClient } from "@/lib/supabase";
+import { createServerClient, castRows } from "@/lib/supabase";
 import { jsonResponse, checkRateLimit } from "@/lib/api-helpers";
 
 export const revalidate = 300;
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     supabase.from("company_interests").select("id", { count: "exact" }),
   ]);
 
-  const politicianData = (politicians.data ?? []) as unknown as { id: string; house: string | null }[];
+  const politicianData = castRows<{ id: string; house: string | null }>(politicians.data);
   const lokSabha = politicianData.filter((p) => p.house === "lok_sabha").length;
   const rajyaSabha = politicianData.filter((p) => p.house === "rajya_sabha").length;
   const vidhanSabha = politicianData.filter((p) => p.house === "vidhan_sabha").length;

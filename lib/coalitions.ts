@@ -1,6 +1,12 @@
 /**
  * Indian parliamentary coalition definitions and party color mappings.
- * Based on the 18th Lok Sabha (2024 elections).
+ *
+ * Maps party abbreviations (as used by MyNeta / ECI affidavits) to their
+ * coalition (NDA, INDIA, or OTHER) and to an SVG-safe hex color for the
+ * hemicycle visualisation.
+ *
+ * Data is based on the 18th Lok Sabha (June 2024 general election results).
+ * Update {@link NDA_PARTIES} / {@link INDIA_PARTIES} when alliances change.
  */
 
 export type CoalitionName = "NDA" | "INDIA" | "OTHER";
@@ -23,6 +29,14 @@ const INDIA_PARTIES = [
 const NDA_SET = new Set(NDA_PARTIES);
 const INDIA_SET = new Set(INDIA_PARTIES);
 
+/**
+ * Resolve a party abbreviation to its parliamentary coalition.
+ *
+ * Returns `"NDA"` or `"INDIA"` for known alliance members, and `"OTHER"`
+ * for independent MPs or parties outside either alliance.
+ *
+ * @param abbreviation - Party abbreviation as stored in the DB (e.g. "BJP", "INC").
+ */
 export function getCoalition(abbreviation: string): CoalitionName {
   if (NDA_SET.has(abbreviation)) return "NDA";
   if (INDIA_SET.has(abbreviation)) return "INDIA";
@@ -71,6 +85,14 @@ export const PARTY_COLORS: Record<string, string> = {
 
 const DEFAULT_COLOR = "#6B7280";
 
+/**
+ * Get the SVG hex color for a party abbreviation.
+ *
+ * Falls back to a neutral gray (`#6B7280`) for unknown parties so the
+ * hemicycle always renders without missing colors.
+ *
+ * @param abbreviation - Party abbreviation as stored in the DB.
+ */
 export function getPartyColor(abbreviation: string): string {
   return PARTY_COLORS[abbreviation] ?? DEFAULT_COLOR;
 }

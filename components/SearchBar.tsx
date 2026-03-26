@@ -20,6 +20,8 @@ export function SearchBar({ compact, autoFocus }: SearchBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Debounced search — waits 300 ms after the user stops typing before
+  // hitting the API, preventing a request on every keystroke.
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
@@ -28,6 +30,7 @@ export function SearchBar({ compact, autoFocus }: SearchBarProps) {
     }
 
     setLoading(true);
+    // Cancel any in-flight debounce timer before scheduling a new one.
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
@@ -45,12 +48,14 @@ export function SearchBar({ compact, autoFocus }: SearchBarProps) {
       }
     }, 300);
 
+    // Cleanup: cancel the timer if the component unmounts mid-debounce.
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [query]);
 
-  // Close on outside click
+  // Click-outside detection — close the dropdown when the user clicks
+  // anywhere outside the search container (input + results panel).
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (!containerRef.current?.contains(e.target as Node)) {
@@ -99,7 +104,9 @@ export function SearchBar({ compact, autoFocus }: SearchBarProps) {
         </div>
       </form>
 
-      {/* Dropdown results */}
+      {/* Dropdown results — shows up to 8 hits with name, party, net worth,
+          and criminal case count. A "See all results" link at the bottom
+          navigates to the full browse page with the query pre-filled. */}
       {isOpen && results.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-surface border border-border shadow-xl z-50 max-h-96 overflow-y-auto rounded-sm">
           {results.map((hit) => (

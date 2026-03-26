@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { MobileNav } from "./MobileNav";
+import { NAV_LINKS } from "@/lib/nav";
 
 export function Header() {
   return (
@@ -28,36 +29,15 @@ export function Header() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm text-text-secondary">
-            <Link
-              href="/politicians"
-              className="hover:text-text-primary transition-colors font-mono"
-            >
-              Browse
-            </Link>
-            <Link
-              href="/parties"
-              className="hover:text-text-primary transition-colors font-mono"
-            >
-              Parties
-            </Link>
-            <Link
-              href="/about"
-              className="hover:text-text-primary transition-colors font-mono"
-            >
-              About
-            </Link>
-            <Link
-              href="/data-sources"
-              className="hover:text-text-primary transition-colors font-mono"
-            >
-              Data
-            </Link>
-            <Link
-              href="/api-docs"
-              className="hover:text-text-primary transition-colors font-mono"
-            >
-              API
-            </Link>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="hover:text-text-primary transition-colors font-mono"
+              >
+                {link.label}
+              </Link>
+            ))}
             <a
               href="https://github.com/iamsknavin/19.1.a"
               target="_blank"

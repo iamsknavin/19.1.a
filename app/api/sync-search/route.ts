@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { syncPoliticiansIndex } from "@/lib/meilisearch";
 
 /**
+ * Admin endpoint to sync the Meilisearch index. Requires service role authorization.
+ * Call after bulk data imports.
+ *
  * POST /api/sync-search
- * Syncs politicians from Supabase to Meilisearch.
- * Protected by service role key.
- * Called by the scraper after a successful run.
+ *   Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>
+ *
+ * Fetches all active politicians from Supabase and upserts them into the
+ * Meilisearch `politicians` index. Also reconfigures index settings on each run.
+ * Called automatically by the scraper after a successful crawl, or manually
+ * via curl for ad-hoc resyncs.
  */
 export async function POST(req: NextRequest) {
   // Verify service role key

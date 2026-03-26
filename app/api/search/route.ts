@@ -1,4 +1,8 @@
+/**
+ * Internal search proxy — tries Meilisearch first (2s timeout), falls back to Supabase ilike search.
+ */
 import { NextRequest, NextResponse } from "next/server";
+import { castRows } from "@/lib/supabase";
 
 const MEILISEARCH_HOST =
   process.env.NEXT_PUBLIC_MEILISEARCH_HOST || "http://localhost:7700";
@@ -90,7 +94,7 @@ async function searchViaSupabase(
   if (state) query = query.ilike("state", `%${state}%`);
 
   const { data } = await query;
-  const rows = (data ?? []) as unknown as PoliticianRow[];
+  const rows = castRows<PoliticianRow>(data);
 
   const hits: SearchHit[] = rows.map((p) => {
     const assets = (p.assets_declarations ?? [])

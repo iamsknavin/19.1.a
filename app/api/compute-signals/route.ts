@@ -3,12 +3,19 @@ import { createServiceClient } from "@/lib/supabase";
 import { computeSignals } from "@/lib/corruption-signals";
 
 /**
+ * Admin endpoint to recompute corruption signals for all politicians.
+ * Can be called manually after scraper runs.
+ *
  * POST /api/compute-signals
- * Computes corruption risk signals for all politicians.
- * Requires SUPABASE_SERVICE_ROLE_KEY (admin-only endpoint).
+ *   Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY>
  *
  * Query params:
- *   ?politician_id=UUID  — compute for a single politician
+ *   ?politician_id=UUID  — scope recomputation to a single politician
+ *
+ * For each politician, deletes existing auto-generated signals and inserts
+ * freshly computed ones based on criminal cases, asset declarations, and
+ * attendance records. Manually curated signals (auto_generated=false) are
+ * never touched.
  */
 export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization");

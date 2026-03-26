@@ -4,14 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SearchBar } from "@/components/SearchBar";
-
-const NAV_LINKS = [
-  { href: "/politicians", label: "Browse" },
-  { href: "/parties", label: "Parties" },
-  { href: "/about", label: "About" },
-  { href: "/data-sources", label: "Data" },
-  { href: "/api-docs", label: "API" },
-];
+import { NAV_LINKS } from "@/lib/nav";
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);

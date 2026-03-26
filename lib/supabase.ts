@@ -52,3 +52,17 @@ export function createServiceClient() {
     auth: { persistSession: false },
   });
 }
+
+/**
+ * Casts Supabase query results to the correct type.
+ *
+ * Supabase's TypeScript inference can produce `never[]` when chaining
+ * filters like `.eq("is_active", true)` on boolean columns. This helper
+ * provides a safe escape hatch without silencing the entire query type.
+ *
+ * @example
+ * const rows = castRows<Politician>(data);
+ */
+export function castRows<T>(data: unknown): T[] {
+  return (data ?? []) as T[];
+}
