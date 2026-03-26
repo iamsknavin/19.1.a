@@ -27,15 +27,12 @@ export const revalidate = 3600; // revalidate every hour
 async function getPlatformStats(): Promise<PlatformStats & { total_elected: number }> {
   const supabase = await createServerClient();
 
-  const [politiciansResult, electedResult, casesResult, assetsResult, attendanceResult, companyResult] = await Promise.all([
+  const [politiciansResult, casesResult, assetsResult, attendanceResult, companyResult] = await Promise.all([
     supabase
       .from("politicians")
       .select("id, house, updated_at", { count: "exact" })
-      .eq("is_active", true),
-    supabase
-      .from("politicians")
-      .select("id", { count: "exact", head: true })
-      .eq("election_status", "won"),
+      .eq("is_active", true)
+      .eq("house", "lok_sabha"),
     supabase.from("criminal_cases").select("id", { count: "exact" }),
     supabase.from("assets_declarations").select("net_worth"),
     supabase.from("attendance_records").select("id", { count: "exact" }),
@@ -57,11 +54,13 @@ async function getPlatformStats(): Promise<PlatformStats & { total_elected: numb
         )[0]?.updated_at ?? null
       : null;
 
+  const total = politiciansResult.count ?? 0;
+
   return {
-    total_politicians: politiciansResult.count ?? 0,
-    total_elected: electedResult.count ?? 0,
-    total_lok_sabha: politicians.filter((p) => p.house === "lok_sabha").length,
-    total_rajya_sabha: politicians.filter((p) => p.house === "rajya_sabha").length,
+    total_politicians: total,
+    total_elected: total,
+    total_lok_sabha: total,
+    total_rajya_sabha: 0,
     total_criminal_cases: casesResult.count ?? 0,
     total_declared_wealth: totalDeclaredWealth,
     total_attendance_records: attendanceResult.count ?? 0,
@@ -192,8 +191,16 @@ export default async function HomePage() {
                 <p className="font-mono text-accent text-2xs uppercase tracking-widest mb-1">
                   Article 19(1)(a) — Constitution of India
                 </p>
-                <p className="text-text-primary text-sm sm:text-base italic leading-relaxed">
+                <p className="text-text-primary text-sm sm:text-base italic leading-relaxed mb-2">
                   &ldquo;All citizens shall have the right to freedom of speech and expression.&rdquo;
+                </p>
+                <p className="text-text-secondary text-xs leading-relaxed">
+                  The Supreme Court has held this includes the{" "}
+                  <strong className="text-text-primary">right to information</strong>{" "}
+                  — the constitutional foundation of India&apos;s RTI Act, 2005.
+                </p>
+                <p className="font-mono text-2xs text-text-muted mt-1">
+                  S.P. Gupta v. Union of India (1981) · State of U.P. v. Raj Narain (1975)
                 </p>
               </div>
 
@@ -251,9 +258,9 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatCard
-              label={stats.total_elected > 0 ? "Elected MPs" : "Candidates Tracked"}
-              value={stats.total_elected > 0 ? stats.total_elected.toLocaleString("en-IN") : stats.total_politicians.toLocaleString("en-IN")}
-              subValue={stats.total_elected > 0 ? `of ${stats.total_politicians} total` : `LS: ${stats.total_lok_sabha} · RS: ${stats.total_rajya_sabha}`}
+              label="Lok Sabha MPs"
+              value={stats.total_lok_sabha.toLocaleString("en-IN")}
+              subValue="18th Lok Sabha · 2024"
               accent
             />
             <StatCard

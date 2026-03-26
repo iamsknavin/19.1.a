@@ -615,6 +615,7 @@ export interface Database {
           house: string | null
           id: string
           is_active: boolean | null
+          latest_net_worth: number | null
           name: string
           name_hindi: string | null
           official_website: string | null
@@ -641,6 +642,7 @@ export interface Database {
           house?: string | null
           id?: string
           is_active?: boolean | null
+          latest_net_worth?: number | null
           name: string
           name_hindi?: string | null
           official_website?: string | null
@@ -667,6 +669,7 @@ export interface Database {
           house?: string | null
           id?: string
           is_active?: boolean | null
+          latest_net_worth?: number | null
           name?: string
           name_hindi?: string | null
           official_website?: string | null
