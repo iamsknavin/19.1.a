@@ -260,7 +260,7 @@ export default async function HomePage() {
             <StatCard
               label="Lok Sabha MPs"
               value={stats.total_lok_sabha.toLocaleString("en-IN")}
-              subValue="18th Lok Sabha · 2024"
+              subValue="18th Lok Sabha · incl. by-elections"
               accent
             />
             <StatCard
